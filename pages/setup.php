@@ -9,34 +9,49 @@ if (rex_post('import', 'bool')) {
     if (file_exists($demoTemplateFile)) {
         $demoContent = file_get_contents($demoTemplateFile);
         
-        // Template erstellen
+        // Template erstellen - EXAKT wie REDAXO Core
         $templateSql = rex_sql::factory();
         $templateSql->setTable(rex::getTable('template'));
         $templateSql->setValue('key', 'tm_modern_business');
         $templateSql->setValue('name', 'Modern Business (Demo)');
         $templateSql->setValue('content', $demoContent);
         $templateSql->setValue('active', 1);
-        $templateSql->setValue('createdate', date('Y-m-d H:i:s'));
-        $templateSql->setValue('updatedate', date('Y-m-d H:i:s'));
-        $templateSql->setValue('createuser', rex::getUser() ? rex::getUser()->getLogin() : 'system');
-        $templateSql->setValue('updateuser', rex::getUser() ? rex::getUser()->getLogin() : 'system');
+        
+        // Attributes für Ctypes, Modules, Categories (leer bei Demo-Template)
+        $attributes = [
+            'ctype' => [],
+            'modules' => [1 => ['all' => 1]], // Alle Module erlaubt
+            'categories' => ['all' => 1] // Alle Kategorien erlaubt
+        ];
+        $templateSql->setArrayValue('attributes', $attributes);
+        
+        // WICHTIG: Global Fields wie REDAXO Core
+        $templateSql->addGlobalCreateFields();
         
         try {
             $templateSql->insert();
-            $templateId = $templateSql->getLastId();
+            $templateId = (int) $templateSql->getLastId();
             
-            // Template-Cache für dieses Template löschen (wie REDAXO es macht)
+            // Template-Cache löschen wie REDAXO Core
             rex_template_cache::delete($templateId);
             
-            // Key-Mapping neu generieren, damit Template sofort verfügbar ist
-            rex_template_cache::generateKeyMapping();
+            // Extension Point wie REDAXO Core
+            rex_extension::registerPoint(new rex_extension_point('TEMPLATE_ADDED', '', [
+                'id' => $templateId,
+                'key' => 'tm_modern_business',
+                'name' => 'Modern Business (Demo)',
+                'content' => $demoContent,
+                'active' => 1,
+            ]));
             
-            // Generellen Cache leeren
-            rex_delete_cache();
+            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
+            $content .= '<p><a href="' . rex_url::backendPage('template_manager/config', ['template_id' => $templateId]) . '" class="btn btn-primary">Jetzt konfigurieren</a></p>';
             
-            // Weiterleitung zur Config-Seite mit dem neuen Template
-            header('Location: ' . rex_url::backendPage('template_manager/config', ['template_id' => $templateId, 'import_success' => 1]));
-            exit;
+            $fragment = new rex_fragment();
+            $fragment->setVar('title', $addon->i18n('setup'), false);
+            $fragment->setVar('body', $content, false);
+            echo $fragment->parse('core/page/section.php');
+            return;
         } catch (rex_sql_exception $e) {
             $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> ' . $addon->i18n('template_manager_setup_import_error', $e->getMessage()) . '</p>';
             
