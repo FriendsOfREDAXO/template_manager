@@ -27,27 +27,27 @@ if (rex_post('import', 'bool')) {
             // Template-Cache leeren
             rex_delete_cache();
             
-            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> Demo-Template "Modern Business (Demo)" wurde erfolgreich importiert! Template-ID: ' . $templateSql->getLastId() . '</p>';
+            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateSql->getLastId()) . '</p>';
             
             $fragment = new rex_fragment();
-            $fragment->setVar('title', 'Setup', false);
+            $fragment->setVar('title', $addon->i18n('setup'), false);
             $fragment->setVar('body', $content, false);
             echo $fragment->parse('core/page/section.php');
             return;
         } catch (rex_sql_exception $e) {
-            $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> Fehler beim Importieren: ' . $e->getMessage() . '</p>';
+            $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> ' . $addon->i18n('template_manager_setup_import_error', $e->getMessage()) . '</p>';
             
             $fragment = new rex_fragment();
-            $fragment->setVar('title', 'Setup', false);
+            $fragment->setVar('title', $addon->i18n('setup'), false);
             $fragment->setVar('body', $content, false);
             echo $fragment->parse('core/page/section.php');
             return;
         }
     } else {
-        $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> Demo-Template-Datei nicht gefunden!</p>';
+        $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> ' . $addon->i18n('template_manager_setup_import_notfound') . '</p>';
         
         $fragment = new rex_fragment();
-        $fragment->setVar('title', 'Setup', false);
+        $fragment->setVar('title', $addon->i18n('setup'), false);
         $fragment->setVar('body', $content, false);
         echo $fragment->parse('core/page/section.php');
         return;
@@ -76,10 +76,10 @@ if (rex_post('cleanup', 'bool')) {
     
     $deletedRows = $deleteSql->getRows();
     
-    $content = '<p class="text-success"><i class="rex-icon fa-check"></i> Cleanup abgeschlossen. ' . $deletedRows . ' verwaiste Einträge entfernt.</p>';
+    $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_cleanup_success', $deletedRows) . '</p>';
     
     $fragment = new rex_fragment();
-    $fragment->setVar('title', 'Setup', false);
+    $fragment->setVar('title', $addon->i18n('setup'), false);
     $fragment->setVar('body', $content, false);
     echo $fragment->parse('core/page/section.php');
     return;
@@ -89,40 +89,40 @@ if (rex_post('cleanup', 'bool')) {
 $content = '<div class="rex-addon-output">';
 
 // Demo-Template Import
-$content .= '<h3><i class="rex-icon fa-download"></i> Demo-Template importieren</h3>';
-$content .= '<p>Importiert das vorkonfigurierte "Modern Business" Template mit DOMAIN_SETTINGS.</p>';
-$content .= '<h4>Features:</h4>';
+$content .= '<h3><i class="rex-icon fa-download"></i> ' . $addon->i18n('template_manager_setup_import_title') . '</h3>';
+$content .= '<p>' . $addon->i18n('template_manager_setup_import_desc') . '</p>';
+$content .= '<h4>' . $addon->i18n('template_manager_setup_import_features') . '</h4>';
 $content .= '<ul>';
-$content .= '<li>5 essenzielle Einstellungen (Firmenname, Farbe, E-Mail, Footer-Links, Breadcrumbs)</li>';
-$content .= '<li>Modernes, schlankes CSS ohne Framework-Abhängigkeiten</li>';
-$content .= '<li>CSS Custom Properties für einfaches Theming</li>';
-$content .= '<li>Dark/Light Mode Support</li>';
-$content .= '<li>Vollständig barrierefrei (WCAG 2.1 AA)</li>';
-$content .= '<li>Responsive Design</li>';
-$content .= '<li>Inline JavaScript mit REDAXO Nonce (CSP-sicher)</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_1') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_2') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_3') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_4') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_5') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_6') . '</li>';
+$content .= '<li>' . $addon->i18n('template_manager_setup_import_feature_7') . '</li>';
 $content .= '</ul>';
 
 $content .= '<form method="post" style="margin-bottom: 3rem;">';
 $content .= '<button type="submit" name="import" value="1" class="btn btn-primary">';
-$content .= '<i class="rex-icon fa-download"></i> Demo-Template jetzt importieren';
+$content .= '<i class="rex-icon fa-download"></i> ' . $addon->i18n('template_manager_setup_import_button');
 $content .= '</button>';
 $content .= '</form>';
 
 // Cleanup
 $content .= '<hr style="margin: 2rem 0;">';
-$content .= '<h3><i class="rex-icon fa-broom"></i> Datenbank-Cleanup</h3>';
-$content .= '<p>Entfernt Settings von gelöschten Templates aus der Datenbank.</p>';
-$content .= '<p class="text-muted"><small>Dies ist nützlich wenn Templates gelöscht wurden und deren Settings in der Datenbank verblieben sind.</small></p>';
+$content .= '<h3><i class="rex-icon fa-broom"></i> ' . $addon->i18n('template_manager_setup_cleanup_title') . '</h3>';
+$content .= '<p>' . $addon->i18n('template_manager_setup_cleanup_desc') . '</p>';
+$content .= '<p class="text-muted"><small>' . $addon->i18n('template_manager_setup_cleanup_hint') . '</small></p>';
 
 $content .= '<form method="post">';
 $content .= '<button type="submit" name="cleanup" value="1" class="btn btn-warning">';
-$content .= '<i class="rex-icon fa-broom"></i> Verwaiste Settings entfernen';
+$content .= '<i class="rex-icon fa-broom"></i> ' . $addon->i18n('template_manager_setup_cleanup_button');
 $content .= '</button>';
 $content .= '</form>';
 
 $content .= '</div>';
 
 $fragment = new rex_fragment();
-$fragment->setVar('title', 'Setup', false);
+$fragment->setVar('title', $addon->i18n('setup'), false);
 $fragment->setVar('body', $content, false);
 echo $fragment->parse('core/page/section.php');

@@ -148,9 +148,9 @@ foreach ($clangs as $clang) {
     
     // Domain + Sprach-Info im Tab anzeigen
     $content .= '<div class="alert alert-info" style="margin-top: 1rem;">';
-    $content .= '<strong><i class="rex-icon fa-info-circle"></i> Aktuell bearbeitet:</strong> ';
-    $content .= 'Domain: <strong>' . rex_escape($currentDomainName) . '</strong> | ';
-    $content .= 'Sprache: <strong>' . rex_escape($clang->getName()) . '</strong>';
+    $content .= '<strong><i class="rex-icon fa-info-circle"></i> ' . $addon->i18n('template_manager_config_domain_language_info') . '</strong> ';
+    $content .= $addon->i18n('template_manager_config_domain_label') . ' <strong>' . rex_escape($currentDomainName) . '</strong> | ';
+    $content .= $addon->i18n('template_manager_config_language_label') . ' <strong>' . rex_escape($clang->getName()) . '</strong>';
     if ($clang->getId() === rex_clang::getStartId()) {
         $content .= ' <span class="label label-info">Fallback</span>';
     }

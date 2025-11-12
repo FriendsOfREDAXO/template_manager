@@ -42,3 +42,31 @@ template_manager_configure = Konfigurieren
 
 template_manager_no_templates = Keine Templates mit DOMAIN_SETTINGS gefunden
 template_manager_no_templates_hint = Erstellen Sie ein Template mit DOMAIN_SETTINGS im DocBlock, um hier Einstellungen zu verwalten. Beispiel:
+
+# Setup-Seite
+setup = Setup
+template_manager_setup_import_title = Demo-Template importieren
+template_manager_setup_import_desc = Importiert das vorkonfigurierte "Modern Business" Template mit DOMAIN_SETTINGS.
+template_manager_setup_import_features = Features:
+template_manager_setup_import_feature_1 = 5 essenzielle Einstellungen (Firmenname, Farbe, E-Mail, Footer-Links, Breadcrumbs)
+template_manager_setup_import_feature_2 = Modernes, schlankes CSS ohne Framework-Abhängigkeiten
+template_manager_setup_import_feature_3 = CSS Custom Properties für einfaches Theming
+template_manager_setup_import_feature_4 = Dark/Light Mode Support
+template_manager_setup_import_feature_5 = Vollständig barrierefrei (WCAG 2.1 AA)
+template_manager_setup_import_feature_6 = Responsive Design
+template_manager_setup_import_feature_7 = Inline JavaScript mit REDAXO Nonce (CSP-sicher)
+template_manager_setup_import_button = Demo-Template jetzt importieren
+template_manager_setup_import_success = Demo-Template "Modern Business (Demo)" wurde erfolgreich importiert! Template-ID: {0}
+template_manager_setup_import_error = Fehler beim Importieren: {0}
+template_manager_setup_import_notfound = Demo-Template-Datei nicht gefunden!
+
+template_manager_setup_cleanup_title = Datenbank-Cleanup
+template_manager_setup_cleanup_desc = Entfernt Settings von gelöschten Templates aus der Datenbank.
+template_manager_setup_cleanup_hint = Dies ist nützlich wenn Templates gelöscht wurden und deren Settings in der Datenbank verblieben sind.
+template_manager_setup_cleanup_button = Verwaiste Settings entfernen
+template_manager_setup_cleanup_success = Cleanup abgeschlossen. {0} verwaiste Einträge entfernt.
+
+# Config-Seite
+template_manager_config_domain_language_info = Aktuell bearbeitet:
+template_manager_config_domain_label = Domain:
+template_manager_config_language_label = Sprache:
