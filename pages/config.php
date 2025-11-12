@@ -102,7 +102,6 @@ foreach ($templates as $tpl) {
 }
 
 if (!$templateData) {
-    // Panel statt Warning
     $content = '<div class="panel panel-default">';
     $content .= '<div class="panel-body">';
     $content .= '<p>' . $addon->i18n('template_manager_no_settings') . '</p>';
@@ -184,14 +183,14 @@ $fragment->setVar('title', $addon->i18n('template_manager_settings') . ' <small 
 $fragment->setVar('options', $options, false);
 $fragment->setVar('body', $panel, false);
 $fragment->setVar('buttons', $buttons, false);
-$content = $fragment->parse('core/page/section.php');
+$formContent = $fragment->parse('core/page/section.php');
 
 // Formular-Wrapper
-$content = '
+$formContent = '
 <form method="post">
     <input type="hidden" name="template_id" value="' . $selectedTemplateId . '">
     <input type="hidden" name="domain_id" value="' . $selectedDomainId . '">
-    ' . $content . '
+    ' . $formContent . '
 </form>
 
 <script type="text/javascript" nonce="' . rex_response::getNonce() . '">
@@ -202,7 +201,13 @@ jQuery(function($) {
 </script>
 ';
 
-echo $content;
+// Template & Domain Auswahl oben, dann Formular
+$fragment = new rex_fragment();
+$fragment->setVar('title', $addon->i18n('template_manager_configure'), false);
+$fragment->setVar('body', $content, false);
+echo $fragment->parse('core/page/section.php');
+
+echo $formContent;
 
 // Ein gemeinsames Formular für alle Sprachen
 $content .= '<form method="post">';
