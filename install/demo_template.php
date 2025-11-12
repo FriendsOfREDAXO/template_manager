@@ -86,7 +86,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
         header .container {
             max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 var(--spacing);
+            padding: 0 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -140,7 +140,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
         .breadcrumb .container {
             max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 var(--spacing);
+            padding: 0 1rem;
         }
         
         .breadcrumb ol {
@@ -169,7 +169,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
         main {
             max-width: var(--max-width);
             margin: 2rem auto;
-            padding: 0 var(--spacing);
+            padding: 0 1rem;
             min-height: 50vh;
         }
         
@@ -184,7 +184,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
         footer .container {
             max-width: var(--max-width);
             margin: 0 auto;
-            padding: 0 var(--spacing);
+            padding: 0 1rem;
         }
         
         footer .footer-nav {
@@ -268,23 +268,44 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 </header>
 
 <!-- Breadcrumbs -->
-<?php if (TemplateManager::get('tm_show_breadcrumbs') && !$this->isStartArticle()): ?>
+<?php 
+$showBreadcrumbs = TemplateManager::get('tm_show_breadcrumbs');
+$currentArticle = rex_article::getCurrent();
+$isStartArticle = $currentArticle && $currentArticle->isStartArticle();
+
+// DEBUG
+echo '<!-- Breadcrumb Debug: ';
+echo 'Show: ' . var_export($showBreadcrumbs, true) . ' | ';
+echo 'IsStart: ' . var_export($isStartArticle, true);
+echo ' -->';
+
+if ($showBreadcrumbs && !$isStartArticle): 
+?>
 <div class="breadcrumb" aria-label="Breadcrumb">
     <div class="container">
-        <?php
-        $breadcrumb = rex_navigation::factory();
-        echo $breadcrumb->show(0, -1, true, function($args) {
-            $items = [];
-            foreach ($args as $depth => $item) {
-                if ($item['active']) {
-                    $items[] = '<li aria-current="page">' . rex_escape($item['name']) . '</li>';
+        <ol>
+            <li><a href="<?= rex_getUrl(rex_article::getSiteStartArticleId()) ?>">Home</a></li>
+            <?php
+            // Breadcrumb-Pfad
+            $trail = [];
+            $article = rex_article::getCurrent();
+            
+            // Alle Eltern-Artikel sammeln
+            while ($article && $article->getId() !== rex_article::getSiteStartArticleId()) {
+                array_unshift($trail, $article);
+                $article = $article->getParent();
+            }
+            
+            // Ausgabe
+            foreach ($trail as $item) {
+                if ($item->getId() === rex_article::getCurrentId()) {
+                    echo '<li aria-current="page">' . rex_escape($item->getName()) . '</li>';
                 } else {
-                    $items[] = '<li><a href="' . $item['href'] . '">' . rex_escape($item['name']) . '</a></li>';
+                    echo '<li><a href="' . $item->getUrl() . '">' . rex_escape($item->getName()) . '</a></li>';
                 }
             }
-            return '<ol>' . implode('', $items) . '</ol>';
-        });
-        ?>
+            ?>
+        </ol>
     </div>
 </div>
 <?php endif; ?>
@@ -337,15 +358,25 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 <footer>
     <div class="container">
         
-        <?php if (TemplateManager::get('tm_footer_links')): ?>
+        <?php 
+        $footerLinks = TemplateManager::get('tm_footer_links');
+        // DEBUG
+        echo '<!-- Footer Links Debug: ';
+        echo 'Value: ' . var_export($footerLinks, true) . ' | ';
+        echo 'Type: ' . gettype($footerLinks) . ' | ';
+        echo 'Empty: ' . (empty($footerLinks) ? 'yes' : 'no');
+        echo ' -->';
+        
+        if ($footerLinks && trim($footerLinks) !== ''): 
+        ?>
         <nav class="footer-nav" aria-label="Footer-Navigation">
             <ul>
                 <?php
-                $links = explode(',', TemplateManager::get('tm_footer_links'));
+                $links = explode(',', $footerLinks);
                 foreach ($links as $articleId) {
-                    $articleId = trim($articleId);
-                    if (!empty($articleId)) {
-                        $article = rex_article::get((int)$articleId);
+                    $articleId = (int) trim($articleId);
+                    if ($articleId > 0) {
+                        $article = rex_article::get($articleId);
                         if ($article) {
                             echo '<li><a href="' . $article->getUrl() . '">' . 
                                  rex_escape($article->getName()) . '</a></li>';
