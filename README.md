@@ -370,7 +370,6 @@ MIT License
 ## Support
 
 - GitHub Issues: [https://github.com/FriendsOfREDAXO/template_manager)
-- REDAXO Slack: #addons Channel
 
 ## Credits
 
