@@ -2,9 +2,6 @@
 
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
 
-// Autoload für Template Manager Klassen
-rex_autoload::addDirectory(__DIR__ . '/lib/');
-
 // Template Settings sind direkt über die Klasse verfügbar:
 // TemplateManager::get('tm_company_name')
 // Keine weitere Initialisierung nötig im Frontend
