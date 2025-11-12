@@ -333,8 +333,7 @@ Nur Zeilen mit `tm_` Prefix werden erfasst!
 
 ### Boot-Prozess
 
-1. `boot.php` registriert Autoloader
-2. Bei jedem Frontend-Request:
+1 Bei jedem Frontend-Request:
    - TemplateManager::get() wird aufgerufen
    - Beim ersten Aufruf: Cache wird geladen
    - Aktuelle Domain + Sprache werden automatisch ermittelt
