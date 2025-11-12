@@ -1,0 +1,30 @@
+package: template_manager
+version: '1.0.0-beta1'
+author: KLXM
+supportpage: https://github.com/KLXM/template_manager
+
+page:
+    title: 'Template Manager'
+    perm: template_manager[]
+    icon: rex-icon fa-cog
+    subpages:
+        settings:
+            title: 'translate:template_manager_settings'
+            icon: rex-icon fa-sliders
+        config:
+            title: 'translate:template_manager_configure'
+            icon: rex-icon fa-edit
+            hasLayout: true
+            hidden: true
+        setup:
+            title: 'Setup'
+            icon: rex-icon fa-wrench
+            perm: admin
+        help: { title: 'translate:help', subPath: README.md, itemClass: 'pull-right' }
+
+requires:
+    redaxo: '^5.17'
+    php:
+        version: '^8.0'
+    packages:
+        yrewrite: '^2.0'

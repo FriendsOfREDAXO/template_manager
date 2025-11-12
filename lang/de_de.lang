@@ -1,0 +1,44 @@
+template_manager_title = Template Manager
+template_manager_settings = Template Einstellungen
+template_manager_configure = Konfigurieren
+
+help = Hilfe
+
+template_manager_select_template = Template auswählen
+template_manager_select_domain = Domain auswählen
+template_manager_no_templates = Keine Templates gefunden
+template_manager_no_domains = Keine Domains konfiguriert
+template_manager_no_settings = Dieses Template hat keine konfigurierbaren Einstellungen
+
+template_manager_save = Einstellungen speichern
+template_manager_saved = Einstellungen erfolgreich gespeichert
+template_manager_error = Fehler beim Speichern der Einstellungen
+
+template_manager_type_text = Text
+template_manager_type_textarea = Mehrzeiliger Text
+template_manager_type_email = E-Mail
+template_manager_type_url = URL
+template_manager_type_media = Medienauswahl
+template_manager_type_select = Auswahl
+template_manager_type_checkbox = Checkbox
+template_manager_type_link = Interner Link
+template_manager_type_linklist = Link-Liste
+
+template_manager_default_value = Standardwert
+template_manager_current_value = Aktueller Wert
+template_manager_description = Beschreibung
+
+template_manager_language_fallback = (Fallback: {0})
+template_manager_no_value_set = Kein Wert gesetzt
+
+# Startseite
+template_manager_intro = Domain- und sprachspezifische Template-Einstellungen zentral verwalten.
+
+template_manager_available_templates = Verfügbare Templates
+template_manager_template_name = Template
+template_manager_settings_count = Anzahl Einstellungen
+template_manager_actions = Aktionen
+template_manager_configure = Konfigurieren
+
+template_manager_no_templates = Keine Templates mit DOMAIN_SETTINGS gefunden
+template_manager_no_templates_hint = Erstellen Sie ein Template mit DOMAIN_SETTINGS im DocBlock, um hier Einstellungen zu verwalten. Beispiel:
