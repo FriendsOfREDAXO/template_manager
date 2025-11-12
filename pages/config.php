@@ -9,8 +9,19 @@ $addon = rex_addon::get('template_manager');
 $parser = new TemplateParser();
 $templates = $parser->getAllTemplates();
 
-// Alle YRewrite Domains holen
+// Alle YRewrite Domains holen und sortieren (Default-Domain ans Ende)
 $domains = rex_yrewrite::getDomains();
+usort($domains, function($a, $b) {
+    $aId = $a->getId();
+    $bId = $b->getId();
+    
+    // Domains ohne ID (leer oder 0) ans Ende
+    if (empty($aId) && !empty($bId)) return 1;
+    if (!empty($aId) && empty($bId)) return -1;
+    
+    // Ansonsten alphabetisch nach Namen
+    return strcmp($a->getName(), $b->getName());
+});
 
 // Alle Sprachen
 $clangs = rex_clang::getAll();
@@ -122,9 +133,28 @@ $content .= '<input type="hidden" name="domain_id" value="' . $selectedDomainId 
 // Tab-Content
 $content .= '<div class="tab-content">';
 
+// Aktuelle Domain-Info ermitteln
+$currentDomainName = 'Unbekannt';
+foreach ($domains as $domain) {
+    if ($domain->getId() === $selectedDomainId) {
+        $currentDomainName = $domain->getName();
+        break;
+    }
+}
+
 foreach ($clangs as $clang) {
     $active = $clang->getId() === rex_clang::getStartId() ? 'active' : '';
     $content .= '<div role="tabpanel" class="tab-pane ' . $active . '" id="lang-' . $clang->getId() . '">';
+    
+    // Domain + Sprach-Info im Tab anzeigen
+    $content .= '<div class="alert alert-info" style="margin-top: 1rem;">';
+    $content .= '<strong><i class="rex-icon fa-info-circle"></i> Aktuell bearbeitet:</strong> ';
+    $content .= 'Domain: <strong>' . rex_escape($currentDomainName) . '</strong> | ';
+    $content .= 'Sprache: <strong>' . rex_escape($clang->getName()) . '</strong>';
+    if ($clang->getId() === rex_clang::getStartId()) {
+        $content .= ' <span class="label label-info">Fallback</span>';
+    }
+    $content .= '</div>';
     
     // Gespeicherte Werte laden
     $manager = new TemplateManager();
