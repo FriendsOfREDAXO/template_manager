@@ -25,11 +25,11 @@ if (rex_post('import', 'bool')) {
             $templateSql->insert();
             $templateId = $templateSql->getLastId();
             
-            // Template-Cache komplett leeren
-            rex_delete_cache();
+            // Template-Cache für dieses Template löschen (wie REDAXO es macht)
+            rex_template_cache::delete($templateId);
             
-            // Extension Point aufrufen um Template-Cache zu invalidieren
-            rex_extension::registerPoint(new rex_extension_point('TEMPLATE_ADDED', $templateId));
+            // Generellen Cache leeren
+            rex_delete_cache();
             
             $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
             
