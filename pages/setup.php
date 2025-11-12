@@ -24,8 +24,13 @@ if (rex_post('import', 'bool')) {
         try {
             $templateSql->insert();
             
-            // Template-Cache leeren
+            // Template-Cache leeren und Templates neu generieren
             rex_delete_cache();
+            
+            // Template-Objekte neu laden
+            if (class_exists('rex_sql_table')) {
+                rex_sql_table::clearInstancePool();
+            }
             
             $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateSql->getLastId()) . '</p>';
             
