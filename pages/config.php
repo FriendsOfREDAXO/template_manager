@@ -116,20 +116,93 @@ if (!$templateData) {
     exit;
 }
 
-// Sprach-Tabs
-$content .= '<ul class="nav nav-tabs" role="tablist">';
-foreach ($clangs as $clang) {
-    $active = $clang->getId() === rex_clang::getStartId() ? 'active' : '';
-    $content .= '<li role="presentation" class="' . $active . '">';
-    $content .= '<a href="#lang-' . $clang->getId() . '" role="tab" data-toggle="tab">';
-    $content .= rex_escape($clang->getName());
-    if ($clang->getId() === rex_clang::getStartId()) {
-        $content .= ' <span class="label label-info">Fallback</span>';
+// Formular-Body mit Tabs aufbauen
+$panel = '';
+
+// Sprach-Tabs Content
+$panel .= '<div class="tab-content">';
+
+// Aktuelle Domain-Info ermitteln
+$currentDomainName = 'Unbekannt';
+foreach ($domains as $domain) {
+    if ($domain->getId() === $selectedDomainId) {
+        $currentDomainName = $domain->getName();
+        break;
     }
-    $content .= '</a>';
-    $content .= '</li>';
 }
-$content .= '</ul>';
+
+foreach ($clangs as $clang) {
+    $active = $clang->getId() === rex_clang::getStartId() ? 'active in' : '';
+    $panel .= '<div role="tabpanel" class="tab-pane fade ' . $active . '" id="lang-' . $clang->getId() . '">';
+    
+    // Domain + Sprach-Info im Tab anzeigen
+    $panel .= '<div class="alert alert-info" style="margin-top: 1rem;">';
+    $panel .= '<strong><i class="rex-icon fa-info-circle"></i> ' . $addon->i18n('template_manager_config_domain_language_info') . '</strong> ';
+    $panel .= $addon->i18n('template_manager_config_domain_label') . ' <strong>' . rex_escape($currentDomainName) . '</strong> | ';
+    $panel .= $addon->i18n('template_manager_config_language_label') . ' <strong>' . rex_escape($clang->getName()) . '</strong>';
+    if ($clang->getId() === rex_clang::getStartId()) {
+        $panel .= ' <span class="label label-info">Fallback</span>';
+    }
+    $panel .= '</div>';
+    
+    // Gespeicherte Werte laden
+    $manager = new TemplateManager();
+    $savedValues = $manager->getTemplateConfigForDomain($selectedTemplateId, $selectedDomainId, $clang->getId());
+    
+    // Settings-Formular generieren
+    foreach ($templateData['settings'] as $setting) {
+        // Field-Name mit Sprach-ID: settings[clang_id][key]
+        $panel .= renderSettingField($setting, $savedValues[$setting['key']] ?? $setting['default'], $addon, $clang->getId());
+    }
+    
+    $panel .= '</div>'; // tab-pane
+}
+
+$panel .= '</div>'; // tab-content
+
+// Tab-Navigation für Sprachen aufbauen
+$options = '<ul class="nav nav-tabs" id="rex-js-template-manager-tabs">';
+foreach ($clangs as $clang) {
+    $options .= '<li><a href="#lang-' . $clang->getId() . '" data-toggle="tab">';
+    $options .= rex_escape($clang->getName());
+    if ($clang->getId() === rex_clang::getStartId()) {
+        $options .= ' <span class="label label-info">Fallback</span>';
+    }
+    $options .= '</a></li>';
+}
+$options .= '</ul>';
+
+// Save-Button
+$buttons = '<button class="btn btn-save rex-form-aligned" type="submit" name="save" value="1">';
+$buttons .= '<i class="rex-icon rex-icon-save"></i> ' . $addon->i18n('template_manager_save');
+$buttons .= '</button>';
+
+// Formular mit Fragment rendern
+$fragment = new rex_fragment();
+$fragment->setVar('class', 'edit', false);
+$fragment->setVar('title', $addon->i18n('template_manager_settings') . ' <small class="rex-primary-id">' . rex_escape($templateData['name']) . '</small>', false);
+$fragment->setVar('options', $options, false);
+$fragment->setVar('body', $panel, false);
+$fragment->setVar('buttons', $buttons, false);
+$content = $fragment->parse('core/page/section.php');
+
+// Formular-Wrapper
+$content = '
+<form method="post">
+    <input type="hidden" name="template_id" value="' . $selectedTemplateId . '">
+    <input type="hidden" name="domain_id" value="' . $selectedDomainId . '">
+    ' . $content . '
+</form>
+
+<script type="text/javascript" nonce="' . rex_response::getNonce() . '">
+jQuery(function($) {
+    // Ersten Tab aktiv setzen
+    $("#rex-js-template-manager-tabs a:first").tab("show");
+});
+</script>
+';
+
+echo $content;
 
 // Ein gemeinsames Formular für alle Sprachen
 $content .= '<form method="post">';
