@@ -28,16 +28,15 @@ if (rex_post('import', 'bool')) {
             // Template-Cache für dieses Template löschen (wie REDAXO es macht)
             rex_template_cache::delete($templateId);
             
+            // Key-Mapping neu generieren, damit Template sofort verfügbar ist
+            rex_template_cache::generateKeyMapping();
+            
             // Generellen Cache leeren
             rex_delete_cache();
             
-            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
-            
-            $fragment = new rex_fragment();
-            $fragment->setVar('title', $addon->i18n('setup'), false);
-            $fragment->setVar('body', $content, false);
-            echo $fragment->parse('core/page/section.php');
-            return;
+            // Weiterleitung zur Config-Seite mit dem neuen Template
+            header('Location: ' . rex_url::backendPage('template_manager/config', ['template_id' => $templateId, 'import_success' => 1]));
+            exit;
         } catch (rex_sql_exception $e) {
             $content = '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> ' . $addon->i18n('template_manager_setup_import_error', $e->getMessage()) . '</p>';
             

@@ -5,6 +5,12 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 
 $addon = rex_addon::get('template_manager');
 
+// Erfolgs-Meldung nach Import anzeigen
+if (rex_request('import_success', 'int')) {
+    $templateId = rex_request('template_id', 'int');
+    echo rex_view::success($addon->i18n('template_manager_setup_import_success', $templateId));
+}
+
 // Alle Templates mit DOMAIN_SETTINGS holen
 $parser = new TemplateParser();
 $templates = $parser->getAllTemplates();
