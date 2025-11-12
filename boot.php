@@ -19,21 +19,22 @@ if (rex::isBackend()) {
                 
                 // Template-Zeilen mit tm_ Key finden und Key klickbar machen
                 $content = preg_replace_callback(
-                    '#<td data-title="Schlüssel">(tm_\w+)</td>.*?template_id=(\d+)#s',
+                    '#(<td data-title="Schlüssel">)(tm_\w+)(</td>.*?template_id=)(\d+)#s',
                     function($matches) {
-                        $templateKey = $matches[1];
-                        $templateId = $matches[2];
+                        $openingTag = $matches[1];  // '<td data-title="Schlüssel">'
+                        $templateKey = $matches[2]; // 'tm_whatever'
+                        $middlePart = $matches[3];  // '</td>...template_id='
+                        $templateId = $matches[4];  // '123'
                         
-                        // Key mit Config-Link + Icon ersetzen
-                        $linkedKey = '<td data-title="Schlüssel">' .
-                            '<a href="index.php?page=template_manager/config&template_id=' . $templateId . '" ' .
+                        // Nur den Key-Teil mit Link ersetzen, Rest bleibt gleich
+                        $url = rex_url::backendPage('template_manager/config', ['template_id' => $templateId]);
+                        $linkedKey = '<a href="' . $url . '" ' .
                             'title="Template Manager Einstellungen konfigurieren">' .
-                            '<i class="rex-icon fa-cog" title="Template Manager Einstellungen"></i> ' .
+                            '<i class="rex-icon fa-cog"></i> ' .
                             htmlspecialchars($templateKey) . 
-                            '</a>' .
-                            '</td>';
+                            '</a>';
                         
-                        return $linkedKey . substr($matches[0], strlen($matches[1]) + 29); // 29 = Länge von '<td data-title="Schlüssel">' + '</td>'
+                        return $openingTag . $linkedKey . $middlePart . $templateId;
                     },
                     $content
                 );
