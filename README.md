@@ -369,7 +369,7 @@ MIT License
 
 ## Support
 
-- GitHub Issues: [KLXM/uikit_theme_builder](https://github.com/KLXM/uikit_theme_builder)
+- GitHub Issues: [https://github.com/FriendsOfREDAXO/template_manager)
 - REDAXO Slack: #addons Channel
 
 ## Credits
