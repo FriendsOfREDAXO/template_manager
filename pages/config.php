@@ -65,27 +65,7 @@ $content .= '<div class="form-group">';
 $content .= '<label>' . $addon->i18n('template_manager_select_domain') . '</label>';
 $content .= '<select class="form-control" id="domain-select" onchange="window.location.href=\'?page=template_manager/config&template_id=' . $selectedTemplateId . '&domain_id=\'+this.value">';
 
-// Domains sortieren: Default immer als letztes
-// Default erkennen: Mount-ID = 0 ODER Name enthält "default" (case-insensitive)
-$sortedDomains = [];
-$defaultDomain = null;
-
 foreach ($domains as $domain) {
-    $isDefault = ($domain->getMountId() === 0 || stripos($domain->getName(), 'default') !== false);
-    
-    if ($isDefault) {
-        $defaultDomain = $domain;
-    } else {
-        $sortedDomains[] = $domain;
-    }
-}
-
-// Default-Domain ans Ende hängen
-if ($defaultDomain) {
-    $sortedDomains[] = $defaultDomain;
-}
-
-foreach ($sortedDomains as $domain) {
     $selected = $domain->getId() === $selectedDomainId ? 'selected' : '';
     $content .= '<option value="' . $domain->getId() . '" ' . $selected . '>' . rex_escape($domain->getName()) . '</option>';
 }
