@@ -23,16 +23,15 @@ if (rex_post('import', 'bool')) {
         
         try {
             $templateSql->insert();
+            $templateId = $templateSql->getLastId();
             
-            // Template-Cache leeren und Templates neu generieren
+            // Template-Cache komplett leeren
             rex_delete_cache();
             
-            // Template-Objekte neu laden
-            if (class_exists('rex_sql_table')) {
-                rex_sql_table::clearInstancePool();
-            }
+            // Extension Point aufrufen um Template-Cache zu invalidieren
+            rex_extension::registerPoint(new rex_extension_point('TEMPLATE_ADDED', $templateId));
             
-            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateSql->getLastId()) . '</p>';
+            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
             
             $fragment = new rex_fragment();
             $fragment->setVar('title', $addon->i18n('setup'), false);
