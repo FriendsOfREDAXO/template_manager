@@ -5,7 +5,7 @@
  * Modernes, schlankes Business-Template mit CSS Custom Properties
  * Ohne Framework-Abhängigkeiten, barrierefrei und performant
  * 
- * DOMAIN_SETTINGS
+ * TM_SETTINGS
  * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
  * tm_primary_color: text|Akzentfarbe|#005d40|Akzentfarbe für Rahmen und Highlights (Hex-Code)
  * tm_contact_email: email|Kontakt E-Mail|info@beispiel.de|Hauptkontakt E-Mail

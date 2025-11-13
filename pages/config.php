@@ -11,7 +11,7 @@ if (rex_request('import_success', 'int')) {
     echo rex_view::success($addon->i18n('template_manager_setup_import_success', $templateId));
 }
 
-// Alle Templates mit DOMAIN_SETTINGS holen
+// Alle Templates mit TM_SETTINGS holen
 $parser = new TemplateParser();
 $templates = $parser->getAllTemplates();
 

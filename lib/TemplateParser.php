@@ -8,12 +8,12 @@ use rex_sql;
 /**
  * Template Parser
  * 
- * Liest DOMAIN_SETTINGS aus Template-DocBlocks
+ * Liest TM_SETTINGS aus Template-DocBlocks
  */
 class TemplateParser
 {
     /**
-     * Parst DOMAIN_SETTINGS aus Template-Content
+     * Parst TM_SETTINGS aus Template-Content
      * 
      * @param string $templateContent Template PHP-Code
      * @return array Geparste Settings
@@ -23,7 +23,7 @@ class TemplateParser
         $settings = [];
         
         // DocBlock extrahieren
-        if (preg_match('#/\*\*.*?DOMAIN_SETTINGS.*?\*/#s', $templateContent, $matches)) {
+        if (preg_match('#/\*\*.*?TM_SETTINGS.*?\*/#s', $templateContent, $matches)) {
             $docBlock = $matches[0];
             
             // Setting-Zeilen extrahieren
@@ -108,7 +108,7 @@ class TemplateParser
         foreach ($sql->getArray() as $row) {
             $settings = self::parseSettings($row['content']);
             
-            // Nur Templates mit DOMAIN_SETTINGS aufnehmen
+            // Nur Templates mit TM_SETTINGS aufnehmen
             if (!empty($settings)) {
                 $templates[] = [
                     'id' => $row['id'],
