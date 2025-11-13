@@ -7,10 +7,20 @@
  * 
  * DOMAIN_SETTINGS
  * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
- * tm_primary_color: text|Akzentfarbe|#005d40|Akzentfarbe für Rahmen und Highlights (Hex-Code)
+ * tm_slogan: textarea|Slogan|Ihre Experten für...|Kurzer Werbe-Slogan (2-3 Zeilen)
+ * tm_primary_color: colorselect|Akzentfarbe|#005d40:#005d40 Brand-Grün,#7D192C:#7D192C Brand-Rot,#b98b73:#b98b73 Braun,#c9a088:#c9a088 Beige,#d4ab94:#d4ab94 Sand,#1e87f0:#1e87f0 UIKit Blau,#32d296:#32d296 Grün,#faa05a:#faa05a Orange|Akzentfarbe für Design
+ * tm_logo: media|Logo||Firmenlogo (Header)
  * tm_contact_email: email|Kontakt E-Mail|info@beispiel.de|Hauptkontakt E-Mail
+ * tm_contact_phone: tel|Telefon|+49 123 456789|Kontakt-Telefonnummer
+ * tm_opening_hours: text|Öffnungszeiten|Mo-Fr 9-18 Uhr|Öffnungszeiten Kurzform
  * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer-Navigation
+ * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
+ * tm_start_article: link|Startseite||Link zur Startseite (für Logo-Klick)
+ * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
+ * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
+ * tm_main_category: sqlselect|Hauptkategorie|SELECT id, name FROM rex_article WHERE parent_id = 0 AND startarticle = 1 ORDER BY name|Artikel-Kategorie für Hauptnavigation
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
+ * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
  */
 
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
@@ -256,7 +266,37 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 <!-- Header mit Navigation -->
 <header>
     <div class="container">
-        <h1><?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?></h1>
+        <?php 
+        $logoMedia = TemplateManager::get('tm_logo');
+        $startArticleId = TemplateManager::get('tm_start_article') ?: rex_article::getSiteStartArticleId();
+        ?>
+        
+        <?php if ($logoMedia): ?>
+            <a href="<?= rex_getUrl($startArticleId) ?>" style="display: block; max-width: 200px;">
+                <img src="<?= rex_url::media($logoMedia) ?>" alt="<?= rex_escape(TemplateManager::get('tm_company_name', 'Logo')) ?>" style="max-width: 100%; height: auto;">
+            </a>
+        <?php else: ?>
+            <h1><a href="<?= rex_getUrl($startArticleId) ?>" style="color: inherit; text-decoration: none;"><?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?></a></h1>
+        <?php endif; ?>
+        
+        <?php if (TemplateManager::get('tm_show_contact_info')): ?>
+        <div style="text-align: right; font-size: 0.9rem;">
+            <?php if (TemplateManager::get('tm_contact_phone')): ?>
+                <div style="margin-bottom: 0.25rem;">
+                    <strong>Tel:</strong> <a href="tel:<?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>" style="color: var(--primary-color); text-decoration: none;">
+                        <?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+            <?php if (TemplateManager::get('tm_contact_email')): ?>
+                <div>
+                    <strong>E-Mail:</strong> <a href="mailto:<?= rex_escape(TemplateManager::get('tm_contact_email')) ?>" style="color: var(--primary-color); text-decoration: none;">
+                        <?= rex_escape(TemplateManager::get('tm_contact_email')) ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
         
         <nav aria-label="Hauptnavigation">
             <?php
@@ -272,12 +312,6 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 $showBreadcrumbs = TemplateManager::get('tm_show_breadcrumbs');
 $currentArticle = rex_article::getCurrent();
 $isStartArticle = $currentArticle && $currentArticle->isStartArticle();
-
-// DEBUG
-echo '<!-- Breadcrumb Debug: ';
-echo 'Show: ' . var_export($showBreadcrumbs, true) . ' | ';
-echo 'IsStart: ' . var_export($isStartArticle, true);
-echo ' -->';
 
 if ($showBreadcrumbs && !$isStartArticle): 
 ?>
@@ -317,8 +351,40 @@ if ($showBreadcrumbs && !$isStartArticle):
         $articleContent = $this->getArticle();
         $hasContent = trim(strip_tags($articleContent)) !== '';
         
-        if ($hasContent): 
+        // Header-Slideshow anzeigen
+        $headerImages = TemplateManager::get('tm_header_images');
+        
+        if ($headerImages && trim($headerImages) !== ''): 
         ?>
+        <div style="margin: -2rem -1rem 2rem; position: relative; background: var(--gray-100); padding: 3rem 1rem;">
+            <?php
+            $images = array_filter(array_map('trim', explode(',', $headerImages)));
+            
+            if (count($images) === 1):
+                // Einzelnes Bild
+                ?>
+                <img src="<?= rex_url::media($images[0]) ?>" alt="Header" style="max-width: 100%; height: auto; border-radius: var(--border-radius);">
+            <?php elseif (count($images) > 1): 
+                // Mehrere Bilder als Grid
+                ?>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    <?php foreach ($images as $image): ?>
+                        <img src="<?= rex_url::media($image) ?>" alt="Header Bild" style="width: 100%; height: 250px; object-fit: cover; border-radius: var(--border-radius);">
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (TemplateManager::get('tm_slogan')): ?>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p style="font-size: 1.5rem; color: var(--primary-color); font-weight: 600; margin: 0; white-space: pre-line;">
+                    <?= nl2br(rex_escape(TemplateManager::get('tm_slogan'))) ?>
+                </p>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+        
+        <?php if ($hasContent): ?>
             <?= $articleContent ?>
         <?php else: ?>
             <!-- Demo Content wenn noch kein Content vorhanden -->
@@ -332,11 +398,30 @@ if ($showBreadcrumbs && !$isStartArticle):
                 <h3>Features:</h3>
                 <ul>
                     <li>✅ Dark/Light Mode Unterstützung (automatisch basierend auf System-Einstellungen)</li>
-                    <li>✅ 5 konfigurierbare Einstellungen über Template Manager</li>
+                    <li>✅ 15+ konfigurierbare Einstellungen über Template Manager</li>
+                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, colorselect, sqlselect, checkbox)</li>
                     <li>✅ Modernes, responsives Design ohne Framework</li>
                     <li>✅ CSS Custom Properties für einfaches Theming</li>
                     <li>✅ Barrierefrei (WCAG 2.1 AA)</li>
                 </ul>
+                
+                <h3>Konfigurierte Einstellungen:</h3>
+                <div style="background: white; padding: 1rem; border-radius: var(--border-radius); margin: 1rem 0; font-size: 0.9rem;">
+                    <p><strong>Firmenname:</strong> <?= rex_escape(TemplateManager::get('tm_company_name', 'Nicht konfiguriert')) ?></p>
+                    <?php if (TemplateManager::get('tm_slogan')): ?>
+                    <p><strong>Slogan:</strong> <?= rex_escape(TemplateManager::get('tm_slogan')) ?></p>
+                    <?php endif; ?>
+                    <p><strong>Primärfarbe:</strong> <span style="display:inline-block;width:16px;height:16px;background:<?= TemplateManager::get('tm_primary_color', '#005d40') ?>;border:1px solid #ccc;vertical-align:middle;border-radius:3px;"></span> <?= TemplateManager::get('tm_primary_color', '#005d40') ?></p>
+                    <?php if (TemplateManager::get('tm_employee_count')): ?>
+                    <p><strong>Mitarbeiter:</strong> <?= (int)TemplateManager::get('tm_employee_count') ?></p>
+                    <?php endif; ?>
+                    <?php if (TemplateManager::get('tm_founded_year')): ?>
+                    <p><strong>Gegründet:</strong> <?= (int)TemplateManager::get('tm_founded_year') ?></p>
+                    <?php endif; ?>
+                    <?php if (TemplateManager::get('tm_opening_hours')): ?>
+                    <p><strong>Öffnungszeiten:</strong> <?= rex_escape(TemplateManager::get('tm_opening_hours')) ?></p>
+                    <?php endif; ?>
+                </div>
                 
                 <h3>Nächste Schritte:</h3>
                 <ol>
@@ -360,12 +445,6 @@ if ($showBreadcrumbs && !$isStartArticle):
         
         <?php 
         $footerLinks = TemplateManager::get('tm_footer_links');
-        // DEBUG
-        echo '<!-- Footer Links Debug: ';
-        echo 'Value: ' . var_export($footerLinks, true) . ' | ';
-        echo 'Type: ' . gettype($footerLinks) . ' | ';
-        echo 'Empty: ' . (empty($footerLinks) ? 'yes' : 'no');
-        echo ' -->';
         
         if ($footerLinks && trim($footerLinks) !== ''): 
         ?>
@@ -389,15 +468,31 @@ if ($showBreadcrumbs && !$isStartArticle):
         <?php endif; ?>
         
         <div class="footer-bottom">
-            <div>&copy; <?= date('Y') ?> <?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?>. Alle Rechte vorbehalten.</div>
-            
-            <?php if (TemplateManager::get('tm_contact_email')): ?>
             <div>
+                &copy; <?= date('Y') ?> <?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?>
+                <?php if (TemplateManager::get('tm_founded_year')): ?>
+                    | Seit <?= (int)TemplateManager::get('tm_founded_year') ?>
+                <?php endif; ?>
+                . Alle Rechte vorbehalten.
+            </div>
+            
+            <div>
+                <?php if (TemplateManager::get('tm_contact_email')): ?>
                 <a href="mailto:<?= rex_escape(TemplateManager::get('tm_contact_email')) ?>" class="email">
                     <?= rex_escape(TemplateManager::get('tm_contact_email')) ?>
                 </a>
+                <?php endif; ?>
+                
+                <?php if (TemplateManager::get('tm_contact_phone') && TemplateManager::get('tm_contact_email')): ?>
+                <span style="margin: 0 0.5rem;">|</span>
+                <?php endif; ?>
+                
+                <?php if (TemplateManager::get('tm_contact_phone')): ?>
+                <a href="tel:<?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>" style="color: var(--primary-color); text-decoration: none;">
+                    <?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>
+                </a>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
         </div>
     </div>
 </footer>

@@ -28,7 +28,8 @@ class TemplateParser
             
             // Setting-Zeilen extrahieren
             // Format: * feldname: typ|Label|Standardwert|Beschreibung
-            // Unterstützte Typen: text, textarea, email, url, media, select, checkbox, link, linklist
+            // Unterstützte Typen: text, textarea, email, url, tel, number, date, datetime-local, time, color, colorselect
+            //                     media, medialist, select, sqlselect, checkbox, link, linklist, uikit_theme_select
             // WICHTIG: Nur Felder mit tm_ Prefix werden geparst!
             preg_match_all('#\*\s+(tm_\w+):\s*([^|]+)\|([^|]*)\|([^|]*)\|(.*)$#m', $docBlock, $settingMatches, PREG_SET_ORDER);
             
@@ -57,16 +58,22 @@ class TemplateParser
      * Parst Optionen aus Select-Feldern
      * 
      * @param string $type Feldtyp
-     * @param string $defaultValue Default-Wert (enthält Optionen bei select)
+     * @param string $defaultValue Default-Wert (enthält Optionen bei select oder SQL bei sqlselect)
      * @return array|null Optionen oder null
      */
     private static function parseOptions(string $type, string $defaultValue): ?array
     {
-        if ($type !== 'select') {
+        if ($type === 'sqlselect') {
+            // Bei sqlselect ist der default-Wert die SQL-Query
+            // Wird später in renderSettingField() ausgeführt
+            return ['_sql_query' => $defaultValue];
+        }
+        
+        if ($type !== 'select' && $type !== 'colorselect') {
             return null;
         }
         
-        // Bei select ist der "default" Teil die Optionsliste
+        // Bei select/colorselect ist der "default" Teil die Optionsliste
         // Format: wert1,wert2,wert3 oder wert1:Label 1,wert2:Label 2
         $optionsPart = $defaultValue;
         

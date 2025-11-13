@@ -243,6 +243,80 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             $html .= '</select>';
             break;
             
+        case 'colorselect':
+            // Farb-Auswahl mit Bootstrap Selectpicker und visueller Anzeige
+            $html .= '<select class="form-control selectpicker" name="' . $name . '" data-size="10">';
+            
+            foreach ($setting['options'] as $colorValue => $colorLabel) {
+                $selected = $colorValue === $value ? 'selected' : '';
+                
+                // Farbiges Badge für visuelle Darstellung
+                $badge = '<span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:' . $colorValue . ';margin-right:8px;border:1px solid rgba(0,0,0,0.15);vertical-align:middle;"></span>';
+                
+                $html .= '<option value="' . rex_escape($colorValue) . '" ' . $selected . ' data-content="' . rex_escape($badge . $colorLabel) . '">';
+                $html .= rex_escape($colorLabel);
+                $html .= '</option>';
+            }
+            
+            $html .= '</select>';
+            
+            // Selectpicker initialisieren
+            $html .= '<script nonce="' . rex_response::getNonce() . '">
+            jQuery(function($) {
+                $("select[name=\'' . $name . '\']").selectpicker("refresh");
+            });
+            </script>';
+            break;
+            
+        case 'sqlselect':
+            // SQL-basierte Auswahl mit Bootstrap Selectpicker
+            $sqlQuery = $setting['options']['_sql_query'] ?? '';
+            
+            if (empty($sqlQuery)) {
+                $html .= '<p class="text-warning"><i class="rex-icon fa-exclamation-triangle"></i> Keine SQL-Query definiert.</p>';
+                $html .= '<input type="hidden" name="' . $name . '" value="">';
+                break;
+            }
+            
+            // SQL ausführen (mit Sicherheits-Prüfung)
+            try {
+                $sql = rex_sql::factory();
+                $sql->setQuery($sqlQuery);
+                
+                $html .= '<select class="form-control selectpicker" name="' . $name . '" data-live-search="true" data-size="10">';
+                $html .= '<option value="">-- Bitte wählen --</option>';
+                
+                for ($i = 0; $i < $sql->getRows(); $i++) {
+                    $row = $sql->getRow();
+                    
+                    // Erwartet: id und name Spalten (oder erstes und zweites Feld)
+                    $optValue = $row['id'] ?? $row[array_key_first($row)] ?? '';
+                    $optLabel = $row['name'] ?? $row[array_key_last($row)] ?? $optValue;
+                    
+                    $selected = $optValue == $value ? 'selected' : '';
+                    
+                    $html .= '<option value="' . rex_escape($optValue) . '" ' . $selected . '>';
+                    $html .= rex_escape($optLabel);
+                    $html .= '</option>';
+                    
+                    $sql->next();
+                }
+                
+                $html .= '</select>';
+                
+                // Selectpicker initialisieren
+                $html .= '<script nonce="' . rex_response::getNonce() . '">
+                jQuery(function($) {
+                    $("select[name=\'' . $name . '\']").selectpicker("refresh");
+                });
+                </script>';
+                
+            } catch (\Exception $e) {
+                $html .= '<p class="text-danger"><i class="rex-icon fa-exclamation-triangle"></i> SQL-Fehler: ' . rex_escape($e->getMessage()) . '</p>';
+                $html .= '<input type="hidden" name="' . $name . '" value="">';
+            }
+            break;
+            
         case 'checkbox':
             $checked = $value === '1' || $value === 'true' ? 'checked' : '';
             $html .= '<div class="checkbox">';
@@ -279,9 +353,76 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             $html .= rex_var_linklist::getWidget($linklistCounter, $name, $value, []);
             break;
             
-        default: // text, email, url
-            $inputType = in_array($setting['type'], ['email', 'url']) ? $setting['type'] : 'text';
-            $html .= '<input type="' . $inputType . '" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '">';
+        case 'medialist':
+            // REDAXO Medialist Widget verwenden
+            static $medialistCounter = 0;
+            $medialistCounter++;
+            $html .= rex_var_medialist::getWidget($medialistCounter, $name, $value, []);
+            break;
+            
+        case 'uikit_theme_select':
+            // Spezielles UIKit Theme Auswahl-Feld
+            if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+                $themeManager = new \UikitThemeBuilder\UikitThemeBuilderManager();
+                $themes = $themeManager->listThemes();
+                
+                $html .= '<select class="form-control selectpicker" name="' . $name . '" data-live-search="true" data-size="10">';
+                $html .= '<option value="">-- Kein Theme --</option>';
+                
+                foreach ($themes as $themeName => $themeData) {
+                    $selected = $value === $themeName ? 'selected' : '';
+                    
+                    // Theme-Farben laden für visuelle Darstellung
+                    $colors = \UikitThemeBuilder\ThemeUtils::getThemeColors($themeManager, $themeName);
+                    $primaryColor = $colors['primary'] ?? '#1e87f0';
+                    
+                    // Color Badge als data-content für Bootstrap Selectpicker
+                    $badge = '<span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:' . $primaryColor . ';margin-right:6px;border:1px solid rgba(0,0,0,0.1);"></span>';
+                    
+                    $html .= '<option value="' . rex_escape($themeName) . '" ' . $selected . ' data-content="' . rex_escape($badge . $themeName) . '">';
+                    $html .= rex_escape($themeName);
+                    $html .= '</option>';
+                }
+                
+                $html .= '</select>';
+                
+                // Selectpicker initialisieren
+                $html .= '<script nonce="' . rex_response::getNonce() . '">
+                jQuery(function($) {
+                    $("select[name=\'' . $name . '\']").selectpicker("refresh");
+                });
+                </script>';
+            } else {
+                $html .= '<p class="text-warning"><i class="rex-icon fa-exclamation-triangle"></i> UIKit Theme Builder Addon ist nicht installiert.</p>';
+                $html .= '<input type="hidden" name="' . $name . '" value="">';
+            }
+            break;
+            
+        case 'color':
+            // HTML5 Color Picker mit Text-Eingabe
+            $html .= '<div class="input-group">';
+            $html .= '<input type="color" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '" style="max-width: 80px;">';
+            $html .= '<input type="text" class="form-control" value="' . rex_escape($value) . '" readonly style="font-family: monospace;">';
+            $html .= '</div>';
+            $html .= '<script nonce="' . rex_response::getNonce() . '">
+            jQuery(function($) {
+                $("input[name=\'' . $name . '\']").on("change", function() {
+                    $(this).next("input").val($(this).val());
+                });
+            });
+            </script>';
+            break;
+            
+        default: // text, email, url, tel, number, date, datetime-local, time
+            $validTypes = ['email', 'url', 'tel', 'number', 'date', 'datetime-local', 'time'];
+            $inputType = in_array($setting['type'], $validTypes) ? $setting['type'] : 'text';
+            
+            $extraAttrs = '';
+            if ($setting['type'] === 'number') {
+                $extraAttrs = ' step="any"'; // Erlaubt Dezimalzahlen
+            }
+            
+            $html .= '<input type="' . $inputType . '" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '"' . $extraAttrs . '>';
             break;
     }
     

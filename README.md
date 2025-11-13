@@ -7,9 +7,11 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 📝 **DocBlock-basierte Konfiguration** - Template-Settings direkt im Template-Code definieren
 - 🌍 **Multi-Domain Support** - Unterschiedliche Einstellungen pro YRewrite-Domain
 - 🌐 **Mehrsprachigkeit** - Separate Einstellungen für jede Sprache mit Fallback
-- 🎨 **9 Feldtypen** - text, textarea, email, url, media, select, checkbox, link, linklist
-- 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap und Medienpicker
+- 🎨 **20+ Feldtypen** - text, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist, uikit_theme_select u.v.m.
+- 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
+- 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges, UIKit Theme Select mit Farbvorschau
 - 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
+- 🔌 **UIKit Theme Builder Integration** - Optionale Theme-Auswahl wenn Addon installiert
 
 ## Installation
 
@@ -24,11 +26,21 @@ Das Addon enthält ein vorkonfiguriertes Demo-Template:
 - **Name:** Modern Business (Demo)
 - **Features:**
   - Dark/Light Mode Support (automatisch basierend auf System-Einstellungen)
-  - 5 essenzielle Einstellungen
+  - 8 essenzielle Einstellungen (inkl. colorselect, medialist, uikit_theme_select)
   - Modernes, responsives Design ohne Framework-Abhängigkeiten
   - CSS Custom Properties für einfaches Theming
   - Barrierefrei (WCAG 2.1 AA)
   - Demo-Content wenn noch kein Content vorhanden
+
+**Enthaltene Feldtypen:**
+- `text` - Firmenname
+- `colorselect` - Akzentfarbe (8 vordefinierte Brand-Farben)
+- `email` - Kontakt E-Mail
+- `tel` - Telefonnummer
+- `linklist` - Footer-Links
+- `medialist` - Header-Bilder
+- `uikit_theme_select` - UIKit Theme (optional)
+- `checkbox` - Breadcrumbs anzeigen
 
 Import über: **Template Manager** → **Setup** → **Demo-Template jetzt importieren**
 
@@ -48,8 +60,12 @@ Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `DOM
  * DOMAIN_SETTINGS
  * tm_logo: media|Logo||Firmenlogo
  * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
+ * tm_primary_color: colorselect|Akzentfarbe|#005d40:#005d40 Grün,#7D192C:#7D192C Rot,#1e87f0:#1e87f0 Blau|Hauptfarbe
  * tm_contact_email: email|E-Mail|info@beispiel.de|Kontakt E-Mail-Adresse
+ * tm_contact_phone: tel|Telefon|+49 123 456789|Kontakt-Telefonnummer
  * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer-Navigation
+ * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
+ * tm_uikit_theme: uikit_theme_select|UIKit Theme||Theme auswählen (nur wenn Addon installiert)
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  */
 ?>
@@ -78,25 +94,76 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 
 | Typ | Beschreibung | Beispiel Default |
 |-----|--------------|------------------|
+| **Text-Felder** |
 | `text` | Einzeiliges Textfeld | `Beispieltext` |
 | `textarea` | Mehrzeiliges Textfeld | `Längerer Text` |
-| `email` | E-Mail-Adresse | `info@beispiel.de` |
+| `email` | E-Mail-Adresse mit Validierung | `info@beispiel.de` |
 | `url` | URL/Link (extern) | `https://beispiel.de` |
-| `media` | Mediendatei (natives Widget) | `logo.png` |
+| `tel` | Telefonnummer | `+49 123 456789` |
+| **Numerische Felder** |
+| `number` | Zahleneingabe (inkl. Dezimal) | `42` oder `3.14` |
+| **Datum/Zeit** |
+| `date` | Datum (YYYY-MM-DD) | `2024-01-15` |
+| `datetime-local` | Datum + Zeit | `2024-01-15T10:30` |
+| `time` | Uhrzeit | `14:30` |
+| **Farben** |
+| `color` | HTML5 Color Picker | `#005d40` |
+| `colorselect` | Vordefinierte Farben (Selectpicker mit Badges) | `#005d40:Brand-Grün,#7D192C:Brand-Rot` |
+| **Medien** |
+| `media` | Einzelne Mediendatei (natives Widget) | `logo.png` |
+| `medialist` | Liste von Mediendateien (natives Widget) | `bild1.jpg,bild2.jpg` |
+| **Auswahl** |
 | `select` | Dropdown-Auswahl | `wert1:Label 1,wert2:Label 2` |
 | `checkbox` | Ja/Nein Checkbox | `` (leer = nicht aktiviert) |
+| **Links** |
 | `link` | Interner REDAXO-Link (natives Widget) | `5` (Artikel-ID) |
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
+| **Spezial** |
+| `uikit_theme_select` | UIKit Theme Auswahl (nur wenn Addon installiert) | `` |
 
-### Select-Optionen
+### Select-Optionen & Colorselect
 
-Bei Select-Feldern werden die Optionen im Default-Wert definiert:
+Bei `select` und `colorselect` Feldern werden die Optionen im Default-Wert definiert:
 
+**Select:**
 ```
 tm_header_style: select|Header-Stil|standard|standard:Standard,modern:Modern,minimal:Minimal|Auswahl des Header-Designs
 ```
 
+**Colorselect (mit visuellen Farb-Badges):**
+```
+tm_primary_color: colorselect|Akzentfarbe|#005d40:#005d40 Brand-Grün,#7D192C:#7D192C Brand-Rot,#1e87f0:#1e87f0 Blau|Hauptfarbe
+```
+
 Format: `wert:Label,wert2:Label2` oder einfach `wert1,wert2,wert3`
+
+**Hinweis:** `colorselect` zeigt farbige Badges im Bootstrap Selectpicker an - ideal für vordefinierte Farbpaletten!
+
+### UIKit Theme Select
+
+Der Feldtyp `uikit_theme_select` ist nur verfügbar, wenn das **UIKit Theme Builder** Addon installiert ist.
+
+**Beispiel:**
+```
+tm_uikit_theme: uikit_theme_select|UIKit Theme||Wählen Sie ein UIKit Theme
+```
+
+**Features:**
+- Automatische Theme-Erkennung aus kompilierten Themes
+- Visuelle Darstellung mit Primary-Color Badge
+- Bootstrap Selectpicker mit Live-Search
+- Fallback-Meldung wenn Addon fehlt
+
+**Frontend-Nutzung:**
+```php
+<?php
+$themeName = TemplateManager::get('tm_uikit_theme');
+if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
+    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
+}
+?>
+```
 
 ## Frontend-Nutzung
 
@@ -147,6 +214,13 @@ $allSettings = TemplateManager::getAll();
     </a>
 <?php endif; ?>
 
+<!-- Telefon -->
+<?php if (TemplateManager::get('tm_contact_phone')): ?>
+    <a href="tel:<?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>">
+        <?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>
+    </a>
+<?php endif; ?>
+
 <!-- Linklist verarbeiten -->
 <?php if (TemplateManager::get('tm_footer_links')): ?>
     <ul>
@@ -163,17 +237,42 @@ $allSettings = TemplateManager::getAll();
     </ul>
 <?php endif; ?>
 
+<!-- Medialist verarbeiten -->
+<?php if (TemplateManager::get('tm_header_images')): ?>
+    <div class="slideshow">
+    <?php
+    $images = explode(',', TemplateManager::get('tm_header_images'));
+    foreach ($images as $image) {
+        $image = trim($image);
+        if ($image) {
+            echo '<img src="' . rex_url::media($image) . '" alt="">';
+        }
+    }
+    ?>
+    </div>
+<?php endif; ?>
+
 <!-- Checkbox prüfen -->
 <?php if (TemplateManager::get('tm_show_breadcrumbs')): ?>
     <!-- Breadcrumb-Code hier -->
 <?php endif; ?>
 
-<!-- CSS Custom Properties -->
+<!-- CSS Custom Properties mit Colorselect -->
 <style>
     :root {
         --primary-color: <?= TemplateManager::get('tm_primary_color', '#005d40') ?>;
+        --primary-dark: color-mix(in srgb, var(--primary-color) 80%, black);
     }
 </style>
+
+<!-- UIKit Theme einbinden (optional) -->
+<?php
+$themeName = TemplateManager::get('tm_uikit_theme');
+if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
+    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
+}
+?>
 ```
 
 ## Backend-Nutzung
@@ -361,6 +460,7 @@ TemplateManager::getAll(
 - **REDAXO:** >= 5.17
 - **YRewrite:** >= 2.0 (für Multi-Domain Support)
 - **PHP:** >= 8.0
+- **Optional:** UIKit Theme Builder (für `uikit_theme_select` Feldtyp)
 
 ## Lizenz
 
