@@ -4,7 +4,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateParser;
 
 $addon = rex_addon::get('template_manager');
 
-// Übersicht über Templates mit TM_SETTINGS
+// Übersicht über Templates mit DOMAIN_SETTINGS
 $parser = new TemplateParser();
 $templates = $parser->getAllTemplates();
 $domains = rex_yrewrite::getDomains();
@@ -49,7 +49,7 @@ if (!empty($templates)) {
     $content .= '<div class="panel-body">';
     $content .= '<p>' . $addon->i18n('template_manager_no_templates_hint') . '</p>';
     $content .= '<pre>/**
- * TM_SETTINGS
+ * DOMAIN_SETTINGS
  * tm_company_name: text|Firmenname|Meine Firma|Offizieller Firmenname
  * tm_logo: media|Logo||Hauptlogo
  */</pre>';
