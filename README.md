@@ -15,7 +15,7 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 
 1. Addon im REDAXO-Backend installieren
 2. Optional: Demo-Template über **Template Manager** → **Setup** importieren
-3. Eigene Templates mit TM_SETTINGS erstellen
+3. Eigene Templates mit DOMAIN_SETTINGS erstellen
 
 ## Demo-Template
 
@@ -36,7 +36,7 @@ Import über: **Template Manager** → **Setup** → **Demo-Template jetzt impor
 
 ### DocBlock-Format
 
-Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `TM_SETTINGS` Abschnitt:
+Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `DOMAIN_SETTINGS` Abschnitt:
 
 ```php
 <?php
@@ -45,7 +45,7 @@ Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `TM_
  * 
  * Beschreibung des Templates
  * 
- * TM_SETTINGS
+ * DOMAIN_SETTINGS
  * tm_logo: media|Logo||Firmenlogo
  * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
  * tm_contact_email: email|E-Mail|info@beispiel.de|Kontakt E-Mail-Adresse
@@ -274,7 +274,7 @@ tm_google_analytics: text|Google Analytics ID||GA4 Tracking-ID (Format: G-XXXXXX
 /**
  * Simple Business Template
  * 
- * TM_SETTINGS
+ * DOMAIN_SETTINGS
  * tm_logo: media|Logo||Firmenlogo
  * tm_company_name: text|Firmenname|Muster GmbH|Firmenname
  * tm_contact_email: email|E-Mail|info@beispiel.de|Kontakt E-Mail
