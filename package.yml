@@ -6,7 +6,7 @@ supportpage: https://github.com/FriendsOfREDAXO/template_manager
 page:
     title: 'Template Manager'
     perm: template_manager[]
-    icon: rex-icon fa-cog
+    icon: rex-icon fa-file-text
     subpages:
         settings:
             title: 'translate:template_manager_settings'
@@ -27,4 +27,4 @@ requires:
     php:
         version: '^8.0'
     packages:
-        yrewrite: '^2.0'
+        yrewrite: '>=2.0'
