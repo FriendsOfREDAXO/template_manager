@@ -120,6 +120,7 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
 | **Spezial** |
 | `uikit_theme_select` | UIKit Theme Auswahl (nur wenn Addon installiert) | `` |
+| `banner_select` | UIKit Banner Auswahl (nur wenn Addon installiert) | `` |
 
 ### Select-Optionen & Colorselect
 
@@ -163,6 +164,58 @@ if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
     echo '<link rel="stylesheet" href="' . $cssUrl . '">';
 }
 ?>
+```
+
+### UIKit Banner Select
+
+Der Feldtyp `banner_select` ist nur verfügbar, wenn das **UIKit Banner Design** Addon installiert ist.
+
+**Beispiel:**
+```
+tm_banner_id: banner_select|Header Banner||Optional: Banner nach der Navbar anzeigen
+```
+
+**Features:**
+- Automatische Banner-Erkennung aus Banner Designer
+- Bootstrap Selectpicker mit Live-Search
+- Vorschau-Link zum Banner
+- "Kein Banner" Option
+- Fallback-Meldung wenn Addon fehlt
+
+**Frontend-Nutzung:**
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Banner ID aus Template Manager laden
+$bannerId = TemplateManager::get('tm_banner_id', '');
+
+// Banner rendern wenn gesetzt
+if (!empty($bannerId) && is_numeric($bannerId)) {
+    echo UikitBannerRenderer::render((int)$bannerId);
+}
+?>
+```
+
+**Typische Platzierung:**
+```php
+<!-- Header mit Navigation -->
+<header>
+    <nav><!-- Navigation --></nav>
+</header>
+
+<!-- Optional: Banner nach Navbar -->
+<?php 
+$bannerId = TemplateManager::get('tm_banner_id', '');
+if (!empty($bannerId) && is_numeric($bannerId)) {
+    echo UikitBannerRenderer::render((int)$bannerId);
+}
+?>
+
+<!-- Main Content -->
+<main>
+    <?php echo 'REX_ARTICLE[]' ?>
+</main>
 ```
 
 ## Frontend-Nutzung
