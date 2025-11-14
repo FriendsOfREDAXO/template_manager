@@ -358,6 +358,7 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             $html .= '</div>';
             
             // JavaScript to update preview when media is selected
+            $mediaBaseUrl = rex_url::media('');
             $html .= '<script nonce="' . rex_response::getNonce() . '">
             jQuery(function($) {
                 $("#' . $fieldId . '").on("change", function() {
@@ -370,7 +371,7 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
                         var ext = filename.split(".").pop().toLowerCase();
                         
                         if (imageExtensions.indexOf(ext) !== -1) {
-                            previewDiv.html("<img src=\"" + rex.mediaUrl + "/" + filename + "\" alt=\"" + filename + "\" style=\"max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 3px;\">");
+                            previewDiv.html("<img src=\"' . $mediaBaseUrl . '" + filename + "\" alt=\"" + filename + "\" style=\"max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 3px;\">");
                         } else {
                             previewDiv.html("<div style=\"padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; display: inline-block;\"><i class=\"rex-icon rex-icon-file\"></i> " + filename + "</div>");
                         }
