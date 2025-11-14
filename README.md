@@ -7,7 +7,7 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 📝 **DocBlock-basierte Konfiguration** - Template-Settings direkt im Template-Code definieren
 - 🌍 **Multi-Domain Support** - Unterschiedliche Einstellungen pro YRewrite-Domain
 - 🌐 **Mehrsprachigkeit** - Separate Einstellungen für jede Sprache mit Fallback
-- 🎨 **20+ Feldtypen** - text, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist, uikit_theme_select u.v.m.
+- 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist, uikit_theme_select u.v.m.
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
 - 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges, UIKit Theme Select mit Farbvorschau
 - 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
@@ -97,6 +97,7 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Text-Felder** |
 | `text` | Einzeiliges Textfeld | `Beispieltext` |
 | `textarea` | Mehrzeiliges Textfeld | `Längerer Text` |
+| `cke5` | WYSIWYG Editor (CKE5) | `<p>HTML Content</p>` |
 | `email` | E-Mail-Adresse mit Validierung | `info@beispiel.de` |
 | `url` | URL/Link (extern) | `https://beispiel.de` |
 | `tel` | Telefonnummer | `+49 123 456789` |
@@ -139,6 +140,47 @@ tm_primary_color: colorselect|Akzentfarbe|#005d40:#005d40 Brand-Grün,#7D192C:#7
 Format: `wert:Label,wert2:Label2` oder einfach `wert1,wert2,wert3`
 
 **Hinweis:** `colorselect` zeigt farbige Badges im Bootstrap Selectpicker an - ideal für vordefinierte Farbpaletten!
+
+### CKE5 WYSIWYG Editor
+
+Der Feldtyp `cke5` bietet einen vollwertigen WYSIWYG-Editor:
+
+**Beispiel:**
+```
+tm_welcome_text: cke5|Willkommenstext|<p>Willkommen auf unserer Website!</p>|Editor-Inhalt mit HTML-Formatierung
+```
+
+**Mit eigenem Profil:**
+```
+tm_footer_text: cke5|Footer-Text||Editor mit 'simple' Profil
+```
+
+Im Template das Profil angeben:
+```php
+'tm_footer_text' => [
+    'label' => 'Footer-Text',
+    'type' => 'cke5',
+    'profile' => 'simple', // optional, default: 'default'
+    'default' => '',
+]
+```
+
+**Features:**
+- Verwendet REDAXO CKE5 Profile
+- Automatische Sprach-Erkennung (User + Content)
+- Fallback zu Textarea wenn CKE5 nicht verfügbar
+- Unterstützt alle CKE5-Profile aus dem Backend
+
+**Frontend-Ausgabe:**
+```php
+<!-- Direktausgabe (HTML ist bereits formatiert) -->
+<?= TemplateManager::get('tm_welcome_text') ?>
+
+<!-- Mit Fallback -->
+<?= TemplateManager::get('tm_welcome_text', '<p>Standard-Text</p>') ?>
+```
+
+**Wichtig:** CKE5-Inhalte sind bereits HTML-formatiert und sollten **nicht** mit `rex_escape()` ausgegeben werden!
 
 ### UIKit Theme Select
 
@@ -259,6 +301,9 @@ $allSettings = TemplateManager::getAll();
 
 <!-- Firmenname mit Fallback -->
 <h1><?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?></h1>
+
+<!-- CKE5 WYSIWYG Inhalt (kein rex_escape!) -->
+<?= TemplateManager::get('tm_welcome_text', '<p>Willkommen!</p>') ?>
 
 <!-- E-Mail -->
 <?php if (TemplateManager::get('tm_contact_email')): ?>
