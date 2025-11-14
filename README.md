@@ -145,28 +145,19 @@ Format: `wert:Label,wert2:Label2` oder einfach `wert1,wert2,wert3`
 
 Der Feldtyp `cke5` bietet einen vollwertigen WYSIWYG-Editor:
 
-**Beispiel:**
+**Beispiel mit Default-Profil:**
 ```
-tm_welcome_text: cke5|Willkommenstext|<p>Willkommen auf unserer Website!</p>|Editor-Inhalt mit HTML-Formatierung
-```
-
-**Mit eigenem Profil:**
-```
-tm_footer_text: cke5|Footer-Text||Editor mit 'simple' Profil
+tm_welcome_text: cke5|Willkommenstext||Editor-Inhalt mit HTML-Formatierung
 ```
 
-Im Template das Profil angeben:
-```php
-'tm_footer_text' => [
-    'label' => 'Footer-Text',
-    'type' => 'cke5',
-    'profile' => 'simple', // optional, default: 'default'
-    'default' => '',
-]
+**Mit eigenem Profil (Profil im Default-Wert angeben):**
+```
+tm_footer_text: cke5|Footer-Text|simple|Editor mit 'simple' Profil
+tm_description: cke5|Beschreibung|full|Editor mit 'full' Profil
 ```
 
 **Features:**
-- Verwendet REDAXO CKE5 Profile
+- Profil-Angabe im Default-Wert (leer = 'default')
 - Automatische Sprach-Erkennung (User + Content)
 - Fallback zu Textarea wenn CKE5 nicht verfügbar
 - Unterstützt alle CKE5-Profile aus dem Backend

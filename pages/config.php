@@ -235,7 +235,8 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
         case 'cke5':
             // CKE5 WYSIWYG Editor
             if (rex_addon::get('cke5')->isAvailable()) {
-                $profile = $setting['profile'] ?? 'default';
+                // Profil aus Default-Wert oder 'default' verwenden
+                $profile = !empty($setting['default']) ? $setting['default'] : 'default';
                 $userLang = \Cke5\Utils\Cke5Lang::getUserLang();
                 $contentLang = \Cke5\Utils\Cke5Lang::getOutputLang();
                 
