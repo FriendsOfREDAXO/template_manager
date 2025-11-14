@@ -232,6 +232,29 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             $html .= '</textarea>';
             break;
             
+        case 'cke5':
+            // CKE5 WYSIWYG Editor
+            if (rex_addon::get('cke5')->isAvailable()) {
+                $profile = $setting['profile'] ?? 'default';
+                $userLang = \Cke5\Utils\Cke5Lang::getUserLang();
+                $contentLang = \Cke5\Utils\Cke5Lang::getOutputLang();
+                
+                $html .= '<textarea class="form-control cke5-editor" ';
+                $html .= 'data-profile="' . rex_escape($profile) . '" ';
+                $html .= 'data-lang="' . rex_escape($userLang) . '" ';
+                $html .= 'data-content-lang="' . rex_escape($contentLang) . '" ';
+                $html .= 'name="' . $name . '">';
+                $html .= rex_escape($value);
+                $html .= '</textarea>';
+            } else {
+                // Fallback zu normalem Textarea wenn CKE5 nicht verfügbar
+                $html .= '<textarea class="form-control" name="' . $name . '" rows="8">';
+                $html .= rex_escape($value);
+                $html .= '</textarea>';
+                $html .= '<p class="text-muted small"><i class="rex-icon fa-info-circle"></i> CKE5 Addon nicht verfügbar - Fallback zu einfachem Textarea.</p>';
+            }
+            break;
+            
         case 'select':
             $html .= '<select class="form-control" name="' . $name . '">';
             foreach ($setting['options'] as $optValue => $optLabel) {
