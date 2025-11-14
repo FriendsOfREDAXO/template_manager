@@ -329,14 +329,57 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             break;
             
         case 'media':
+            $fieldId = 'REX_MEDIA_' . $setting['key'] . '_' . $clangId;
+            $previewId = 'preview_' . $fieldId;
+            
             $html .= '<div class="input-group">';
-            $html .= '<input type="text" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '" id="REX_MEDIA_' . $setting['key'] . '">';
+            $html .= '<input type="text" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '" id="' . $fieldId . '">';
             $html .= '<span class="input-group-btn">';
-            $html .= '<a href="#" class="btn btn-default" onclick="openMediaPool(\'REX_MEDIA_' . $setting['key'] . '\'); return false;">';
+            $html .= '<a href="#" class="btn btn-default" onclick="openMediaPool(\'' . $fieldId . '\'); return false;">';
             $html .= '<i class="rex-icon rex-icon-open-mediapool"></i>';
             $html .= '</a>';
             $html .= '</span>';
             $html .= '</div>';
+            
+            // Media preview/placeholder
+            $html .= '<div id="' . $previewId . '" style="margin-top: 10px;">';
+            if (!empty($value)) {
+                $media = rex_media::get($value);
+                if ($media) {
+                    if ($media->isImage()) {
+                        $html .= '<img src="' . rex_url::media($value) . '" alt="' . rex_escape($value) . '" style="max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 3px;">';
+                    } else {
+                        $html .= '<div style="padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; display: inline-block;">';
+                        $html .= '<i class="rex-icon rex-icon-file"></i> ' . rex_escape($value);
+                        $html .= '</div>';
+                    }
+                }
+            }
+            $html .= '</div>';
+            
+            // JavaScript to update preview when media is selected
+            $html .= '<script nonce="' . rex_response::getNonce() . '">
+            jQuery(function($) {
+                $("#' . $fieldId . '").on("change", function() {
+                    var filename = $(this).val();
+                    var previewDiv = $("#' . $previewId . '");
+                    
+                    if (filename) {
+                        // Check if it\'s an image
+                        var imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"];
+                        var ext = filename.split(".").pop().toLowerCase();
+                        
+                        if (imageExtensions.indexOf(ext) !== -1) {
+                            previewDiv.html("<img src=\"" + rex.mediaUrl + "/" + filename + "\" alt=\"" + filename + "\" style=\"max-width: 200px; max-height: 150px; border: 1px solid #ddd; border-radius: 3px;\">");
+                        } else {
+                            previewDiv.html("<div style=\"padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; display: inline-block;\"><i class=\"rex-icon rex-icon-file\"></i> " + filename + "</div>");
+                        }
+                    } else {
+                        previewDiv.html("");
+                    }
+                });
+            });
+            </script>';
             break;
             
         case 'link':
