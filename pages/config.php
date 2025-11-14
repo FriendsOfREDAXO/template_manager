@@ -329,14 +329,10 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
             break;
             
         case 'media':
-            $html .= '<div class="input-group">';
-            $html .= '<input type="text" class="form-control" name="' . $name . '" value="' . rex_escape($value) . '" id="REX_MEDIA_' . $setting['key'] . '">';
-            $html .= '<span class="input-group-btn">';
-            $html .= '<a href="#" class="btn btn-default" onclick="openMediaPool(\'REX_MEDIA_' . $setting['key'] . '\'); return false;">';
-            $html .= '<i class="rex-icon rex-icon-open-mediapool"></i>';
-            $html .= '</a>';
-            $html .= '</span>';
-            $html .= '</div>';
+            // REDAXO Media Widget verwenden
+            static $mediaCounter = 0;
+            $mediaCounter++;
+            $html .= rex_var_media::getWidget($mediaCounter, $name, $value, []);
             break;
             
         case 'link':
