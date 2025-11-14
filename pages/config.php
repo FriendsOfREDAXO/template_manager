@@ -373,7 +373,7 @@ function renderSettingField(array $setting, string $value, rex_addon $addon, int
                     $selected = $value === $themeName ? 'selected' : '';
                     
                     // Theme-Farben laden für visuelle Darstellung
-                    $colors = \UikitThemeBuilder\ThemeUtils::getThemeColors($themeManager, $themeName);
+                    $colors = \UikitThemeBuilder\ThemeHelper::getThemeColors($themeManager, $themeName);
                     $primaryColor = $colors['primary'] ?? '#1e87f0';
                     
                     // Color Badge als data-content für Bootstrap Selectpicker
