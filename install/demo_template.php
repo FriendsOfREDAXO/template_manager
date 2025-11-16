@@ -19,6 +19,7 @@
  * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
  * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
  * tm_main_category: category|Hauptkategorie||Artikel-Kategorie für Hauptnavigation
+ * tm_service_categories: categorylist|Service-Kategorien||Mehrere Kategorien für Services/Leistungen
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
  */
@@ -398,8 +399,8 @@ if ($showBreadcrumbs && !$isStartArticle):
                 <h3>Features:</h3>
                 <ul>
                     <li>✅ Dark/Light Mode Unterstützung (automatisch basierend auf System-Einstellungen)</li>
-                    <li>✅ 15+ konfigurierbare Einstellungen über Template Manager</li>
-                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, category, colorselect, checkbox)</li>
+                    <li>✅ 16+ konfigurierbare Einstellungen über Template Manager</li>
+                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, category, categorylist, colorselect, checkbox)</li>
                     <li>✅ Modernes, responsives Design ohne Framework</li>
                     <li>✅ CSS Custom Properties für einfaches Theming</li>
                     <li>✅ Barrierefrei (WCAG 2.1 AA)</li>
