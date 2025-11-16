@@ -38,9 +38,6 @@ class FieldRendererManager
             new FieldRenderer\MediaLinkFieldRenderer(),
             new FieldRenderer\CategoryFieldRenderer(),
             new FieldRenderer\CategoryListFieldRenderer(),
-            
-            // DEPRECATED - Wird in Version 2.0 entfernt
-            new FieldRenderer\BannerSelectFieldRenderer(),
         ];
         
         // Extension Point: Externe Addons können eigene Renderer registrieren
