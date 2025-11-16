@@ -18,7 +18,7 @@
  * tm_start_article: link|Startseite||Link zur Startseite (für Logo-Klick)
  * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
  * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
- * tm_main_category: sqlselect|Hauptkategorie|SELECT id, name FROM rex_article WHERE parent_id = 0 AND startarticle = 1 ORDER BY name|Artikel-Kategorie für Hauptnavigation
+ * tm_main_category: category|Hauptkategorie||Artikel-Kategorie für Hauptnavigation
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
  */
@@ -399,7 +399,7 @@ if ($showBreadcrumbs && !$isStartArticle):
                 <ul>
                     <li>✅ Dark/Light Mode Unterstützung (automatisch basierend auf System-Einstellungen)</li>
                     <li>✅ 15+ konfigurierbare Einstellungen über Template Manager</li>
-                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, colorselect, sqlselect, checkbox)</li>
+                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, category, colorselect, checkbox)</li>
                     <li>✅ Modernes, responsives Design ohne Framework</li>
                     <li>✅ CSS Custom Properties für einfaches Theming</li>
                     <li>✅ Barrierefrei (WCAG 2.1 AA)</li>
