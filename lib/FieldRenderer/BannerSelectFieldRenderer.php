@@ -88,7 +88,7 @@ class BannerSelectFieldRenderer extends AbstractFieldRenderer
                     var bannerId = $(this).val();
                     var $container = $select.parent().find("[data-preview-container]");
                     
-                    if (bannerId && bannerId != "") {
+                    if (bannerId && bannerId !== "") {
                         var baseUrl = "' . htmlspecialchars_decode(\rex_url::backendPage('uikit_banner_design/preview')) . '";
                         var previewUrl = baseUrl + "&id=" + bannerId;
                         

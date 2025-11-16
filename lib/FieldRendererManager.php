@@ -49,6 +49,11 @@ class FieldRendererManager
             self::$renderers,
             []
         ));
+        
+        // Type-Safety: Stelle sicher, dass Extension Point ein Array zurückgibt
+        if (!is_array(self::$renderers)) {
+            throw new \RuntimeException('Extension point TEMPLATE_MANAGER_FIELD_RENDERERS must return array of FieldRendererInterface instances');
+        }
     }
     
     /**

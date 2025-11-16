@@ -40,7 +40,7 @@ class InputFieldRenderer extends AbstractFieldRenderer
             $html .= '</div>';
             $html .= $this->renderScript('
                 jQuery(function($) {
-                    $("input[name=\'' . $name . '\']").on("change", function() {
+                    $("input[name=" + ' . json_encode($name) . ' + "]").on("change", function() {
                         $(this).next("input").val($(this).val());
                     });
                 });
