@@ -4,8 +4,8 @@ template_manager_configure = Konfigurieren
 
 help = Hilfe
 
-template_manager_select_template = Template auswählen
-template_manager_select_domain = Domain auswählen
+template_manager_select_template = Ausgewähltes Template
+template_manager_select_domain = Aktuelle Domain
 template_manager_no_templates = Keine Templates gefunden
 template_manager_no_domains = Keine Domains konfiguriert
 template_manager_no_settings = Dieses Template hat keine konfigurierbaren Einstellungen

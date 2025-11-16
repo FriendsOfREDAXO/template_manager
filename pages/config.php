@@ -62,11 +62,12 @@ if (rex_post('save', 'bool')) {
 }
 
 // Template & Domain Auswahl
-$content = '<div class="row">';
+$content = '<div class="alert alert-info" style="box-shadow: 0 4px 12px rgba(0,0,0,0.15);">';
+$content .= '<div class="row">';
 $content .= '<div class="col-md-6">';
 $content .= '<div class="form-group">';
-$content .= '<label>' . $addon->i18n('template_manager_select_template') . '</label>';
-$content .= '<select class="form-control" id="template-select" onchange="window.location.href=\'?page=template_manager/config&template_id=\'+this.value+\'&domain_id=' . $selectedDomainId . '\'">';
+$content .= '<label style="font-weight: 600; font-size: 14px;"><i class="rex-icon fa-file-code-o"></i> ' . $addon->i18n('template_manager_select_template') . '</label>';
+$content .= '<select class="form-control selectpicker" data-size="10" data-live-search="true" id="template-select" onchange="window.location.href=\'?page=template_manager/config&template_id=\'+this.value+\'&domain_id=' . $selectedDomainId . '\'">';
 
 foreach ($templates as $tpl) {
     $selected = $tpl['id'] === $selectedTemplateId ? 'selected' : '';
@@ -79,8 +80,8 @@ $content .= '</div>';
 
 $content .= '<div class="col-md-6">';
 $content .= '<div class="form-group">';
-$content .= '<label>' . $addon->i18n('template_manager_select_domain') . '</label>';
-$content .= '<select class="form-control" id="domain-select" onchange="window.location.href=\'?page=template_manager/config&template_id=' . $selectedTemplateId . '&domain_id=\'+this.value">';
+$content .= '<label style="font-weight: 600; font-size: 14px;"><i class="rex-icon fa-globe"></i> ' . $addon->i18n('template_manager_select_domain') . '</label>';
+$content .= '<select class="form-control selectpicker" data-size="10" id="domain-select" onchange="window.location.href=\'?page=template_manager/config&template_id=' . $selectedTemplateId . '&domain_id=\'+this.value">';
 
 foreach ($domains as $domain) {
     $selected = $domain->getId() === $selectedDomainId ? 'selected' : '';
@@ -91,6 +92,14 @@ $content .= '</select>';
 $content .= '</div>';
 $content .= '</div>';
 $content .= '</div>';
+
+$content .= '</div>';
+
+$content .= '<script nonce="' . rex_response::getNonce() . '">
+jQuery(function($) {
+    $(".selectpicker").selectpicker("refresh");
+});
+</script>';
 
 // Template Settings laden
 $templateData = null;
@@ -134,11 +143,10 @@ foreach ($clangs as $clang) {
     $active = $clang->getId() === rex_clang::getStartId() ? 'active in' : '';
     $panel .= '<div role="tabpanel" class="tab-pane fade ' . $active . '" id="lang-' . $clang->getId() . '">';
     
-    // Domain + Sprach-Info im Tab anzeigen
+    // Nur Sprach-Info im Tab anzeigen (Domain + Template sind bereits oben sichtbar)
     $panel .= '<div class="alert alert-info" style="margin-top: 1rem;">';
-    $panel .= '<strong><i class="rex-icon fa-info-circle"></i> ' . $addon->i18n('template_manager_config_domain_language_info') . '</strong> ';
-    $panel .= $addon->i18n('template_manager_config_domain_label') . ' <strong>' . rex_escape($currentDomainName) . '</strong> | ';
-    $panel .= $addon->i18n('template_manager_config_language_label') . ' <strong>' . rex_escape($clang->getName()) . '</strong>';
+    $panel .= '<strong><i class="rex-icon fa-language"></i> ' . $addon->i18n('template_manager_config_language_label') . '</strong> ';
+    $panel .= '<strong>' . rex_escape($clang->getName()) . '</strong>';
     if ($clang->getId() === rex_clang::getStartId()) {
         $panel .= ' <span class="label label-info">Fallback</span>';
     }
