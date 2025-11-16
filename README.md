@@ -7,11 +7,26 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 📝 **DocBlock-basierte Konfiguration** - Template-Settings direkt im Template-Code definieren
 - 🌍 **Multi-Domain Support** - Unterschiedliche Einstellungen pro YRewrite-Domain
 - 🌐 **Mehrsprachigkeit** - Separate Einstellungen für jede Sprache mit Fallback
-- 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist, uikit_theme_select u.v.m.
+- 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist u.v.m.
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
-- 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges, UIKit Theme Select mit Farbvorschau
+- 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges
 - 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
-- 🔌 **UIKit Theme Builder Integration** - Optionale Theme-Auswahl wenn Addon installiert
+- 🔌 **Erweiterbar** - Extension Point System für eigene Feldtypen durch externe Addons
+
+## Erweiterbarkeit für externe Addons
+
+Ab Version 1.x können externe Addons eigene Feldtypen registrieren:
+
+```php
+// In boot.php des externen Addons
+rex_extension::register('TEMPLATE_MANAGER_FIELD_RENDERERS', function($ep) {
+    $renderers = $ep->getSubject();
+    $renderers[] = new \MeinAddon\TemplateManagerFieldRenderer();
+    return $renderers;
+});
+```
+
+Siehe [EXTERNAL_FIELD_RENDERER_EXAMPLE.md](EXTERNAL_FIELD_RENDERER_EXAMPLE.md) für vollständige Beispiele.
 
 ## Installation
 
@@ -39,7 +54,6 @@ Das Addon enthält ein vorkonfiguriertes Demo-Template:
 - `tel` - Telefonnummer
 - `linklist` - Footer-Links
 - `medialist` - Header-Bilder
-- `uikit_theme_select` - UIKit Theme (optional)
 - `checkbox` - Breadcrumbs anzeigen
 
 Import über: **Template Manager** → **Setup** → **Demo-Template jetzt importieren**
@@ -65,7 +79,6 @@ Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `DOM
  * tm_contact_phone: tel|Telefon|+49 123 456789|Kontakt-Telefonnummer
  * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer-Navigation
  * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
- * tm_uikit_theme: uikit_theme_select|UIKit Theme||Theme auswählen (nur wenn Addon installiert)
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  */
 ?>
@@ -119,9 +132,6 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Links** |
 | `link` | Interner REDAXO-Link (natives Widget) | `5` (Artikel-ID) |
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
-| **Spezial** |
-| `uikit_theme_select` | UIKit Theme Auswahl (nur wenn Addon installiert) | `` |
-| `banner_select` | UIKit Banner Auswahl (nur wenn Addon installiert) | `` |
 
 ### Select-Optionen & Colorselect
 
@@ -173,83 +183,8 @@ tm_description: cke5|Beschreibung|full|Editor mit 'full' Profil
 
 **Wichtig:** CKE5-Inhalte sind bereits HTML-formatiert und sollten **nicht** mit `rex_escape()` ausgegeben werden!
 
-### UIKit Theme Select
+## Frontend-Nutzung
 
-Der Feldtyp `uikit_theme_select` ist nur verfügbar, wenn das **UIKit Theme Builder** Addon installiert ist.
-
-**Beispiel:**
-```
-tm_uikit_theme: uikit_theme_select|UIKit Theme||Wählen Sie ein UIKit Theme
-```
-
-**Features:**
-- Automatische Theme-Erkennung aus kompilierten Themes
-- Visuelle Darstellung mit Primary-Color Badge
-- Bootstrap Selectpicker mit Live-Search
-- Fallback-Meldung wenn Addon fehlt
-
-**Frontend-Nutzung:**
-```php
-<?php
-$themeName = TemplateManager::get('tm_uikit_theme');
-if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
-    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
-}
-?>
-```
-
-### UIKit Banner Select
-
-Der Feldtyp `banner_select` ist nur verfügbar, wenn das **UIKit Banner Design** Addon installiert ist.
-
-**Beispiel:**
-```
-tm_banner_id: banner_select|Header Banner||Optional: Banner nach der Navbar anzeigen
-```
-
-**Features:**
-- Automatische Banner-Erkennung aus Banner Designer
-- Bootstrap Selectpicker mit Live-Search
-- Vorschau-Link zum Banner
-- "Kein Banner" Option
-- Fallback-Meldung wenn Addon fehlt
-
-**Frontend-Nutzung:**
-```php
-<?php
-use FriendsOfRedaxo\TemplateManager\TemplateManager;
-
-// Banner ID aus Template Manager laden
-$bannerId = TemplateManager::get('tm_banner_id', '');
-
-// Banner rendern wenn gesetzt
-if (!empty($bannerId) && is_numeric($bannerId)) {
-    echo UikitBannerRenderer::render((int)$bannerId);
-}
-?>
-```
-
-**Typische Platzierung:**
-```php
-<!-- Header mit Navigation -->
-<header>
-    <nav><!-- Navigation --></nav>
-</header>
-
-<!-- Optional: Banner nach Navbar -->
-<?php 
-$bannerId = TemplateManager::get('tm_banner_id', '');
-if (!empty($bannerId) && is_numeric($bannerId)) {
-    echo UikitBannerRenderer::render((int)$bannerId);
-}
-?>
-
-<!-- Main Content -->
-<main>
-    <?php echo 'REX_ARTICLE[]' ?>
-</main>
-```
 
 ## Frontend-Nutzung
 
@@ -353,15 +288,6 @@ $allSettings = TemplateManager::getAll();
         --primary-dark: color-mix(in srgb, var(--primary-color) 80%, black);
     }
 </style>
-
-<!-- UIKit Theme einbinden (optional) -->
-<?php
-$themeName = TemplateManager::get('tm_uikit_theme');
-if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
-    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
-}
-?>
 ```
 
 ## Backend-Nutzung

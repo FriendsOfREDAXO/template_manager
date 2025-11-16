@@ -4,7 +4,14 @@ namespace FriendsOfRedaxo\TemplateManager;
 
 /**
  * Banner Select Widget für Template Manager
- * Ermöglicht die Auswahl eines UIKit Banners aus dem Banner Designer
+ * 
+ * @deprecated Version 1.x - Wird in Version 2.0 entfernt!
+ * 
+ * Diese Klasse wird nicht mehr benötigt, da der BannerSelectFieldRenderer
+ * verwendet wird. Sie bleibt nur aus Kompatibilitätsgründen erhalten.
+ * 
+ * Externe Addons sollten eigene Field Renderer über den Extension Point
+ * TEMPLATE_MANAGER_FIELD_RENDERERS registrieren.
  */
 class BannerSelectWidget
 {
