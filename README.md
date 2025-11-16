@@ -132,6 +132,8 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Links** |
 | `link` | Interner REDAXO-Link (natives Widget) | `5` (Artikel-ID) |
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
+| **Struktur** |
+| `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
 
 ### Select-Optionen & Colorselect
 
@@ -182,6 +184,59 @@ tm_description: cke5|Beschreibung|full|Editor mit 'full' Profil
 ```
 
 **Wichtig:** CKE5-Inhalte sind bereits HTML-formatiert und sollten **nicht** mit `rex_escape()` ausgegeben werden!
+
+### Category Select
+
+Der Feldtyp `category` bietet eine hierarchische Kategorie-Auswahl mit korrekter Struktur-Darstellung:
+
+**Beispiel:**
+```
+tm_news_category: category|News-Kategorie|5|Kategorie für News-Artikel
+tm_main_category: category|Hauptkategorie||Root-Kategorie auswählen
+```
+
+**Features:**
+- Hierarchische Darstellung mit Einrückung
+- Kategorie-IDs werden angezeigt: "Name [ID]"
+- Berechtigungs-Prüfung (nur Kategorien mit Zugriff)
+- "Homepage" Option für Root-Level (ID: 0)
+- Berücksichtigt aktuelle Sprache
+- Bootstrap Selectpicker mit Live-Search
+
+**Frontend-Nutzung:**
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Kategorie-ID abrufen
+$categoryId = TemplateManager::get('tm_news_category');
+
+if ($categoryId) {
+    // Kategorie-Objekt laden
+    $category = rex_category::get($categoryId);
+    
+    if ($category) {
+        echo '<h2>' . rex_escape($category->getName()) . '</h2>';
+        
+        // Artikel der Kategorie auflisten
+        $articles = $category->getArticles();
+        foreach ($articles as $article) {
+            if (!$article->isStartArticle()) {
+                echo '<a href="' . $article->getUrl() . '">';
+                echo rex_escape($article->getName());
+                echo '</a><br>';
+            }
+        }
+    }
+}
+?>
+```
+
+**Typische Verwendung:**
+- News-Kategorie für Artikel-Listen
+- Landingpage-Kategorie
+- Produkt-Kategorie
+- Filterkategorien
 
 ## Frontend-Nutzung
 

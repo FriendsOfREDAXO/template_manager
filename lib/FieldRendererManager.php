@@ -36,6 +36,7 @@ class FieldRendererManager
             new FieldRenderer\SelectFieldRenderer(),
             new FieldRenderer\CheckboxFieldRenderer(),
             new FieldRenderer\MediaLinkFieldRenderer(),
+            new FieldRenderer\CategoryFieldRenderer(),
             
             // DEPRECATED - Wird in Version 2.0 entfernt
             new FieldRenderer\BannerSelectFieldRenderer(),
