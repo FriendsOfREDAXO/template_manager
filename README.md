@@ -134,6 +134,7 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
 | **Struktur** |
 | `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
+| `categorylist` | Mehrere Kategorien auswählen | `1,5,8` (Kategorie-IDs) |
 
 ### Select-Optionen & Colorselect
 
@@ -237,6 +238,66 @@ if ($categoryId) {
 - Landingpage-Kategorie
 - Produkt-Kategorie
 - Filterkategorien
+
+### CategoryList Select
+
+Der Feldtyp `categorylist` bietet Mehrfachauswahl von Kategorien mit hierarchischer Darstellung:
+
+**Beispiel:**
+```
+tm_news_categories: categorylist|News-Kategorien||Mehrere Kategorien für News-Filter
+tm_product_categories: categorylist|Produkt-Kategorien|5,8|Standard-Produkt-Kategorien
+```
+
+**Features:**
+- Mehrfachauswahl mit Checkboxen
+- Hierarchische Darstellung mit Einrückung
+- Kategorie-IDs werden angezeigt: "Name [ID]"
+- "Alle auswählen / Keine" Buttons
+- Berechtigungs-Prüfung
+- Bootstrap Selectpicker mit Live-Search
+
+**Frontend-Nutzung:**
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Kategorie-IDs abrufen (komma-separiert)
+$categoryIds = TemplateManager::get('tm_news_categories');
+
+if ($categoryIds) {
+    $categoryIds = array_filter(array_map('intval', explode(',', $categoryIds)));
+    
+    echo '<div class="category-filter">';
+    foreach ($categoryIds as $catId) {
+        $category = rex_category::get($catId);
+        if ($category) {
+            echo '<a href="' . $category->getUrl() . '" class="btn">';
+            echo rex_escape($category->getName());
+            echo '</a> ';
+        }
+    }
+    echo '</div>';
+    
+    // Oder: Artikel aus allen ausgewählten Kategorien
+    $articles = [];
+    foreach ($categoryIds as $catId) {
+        $category = rex_category::get($catId);
+        if ($category) {
+            $articles = array_merge($articles, $category->getArticles());
+        }
+    }
+    
+    // Artikel ausgeben...
+}
+?>
+```
+
+**Typische Verwendung:**
+- Mehrere News-Kategorien
+- Produkt-Filtergruppen
+- Content-Aggregation aus verschiedenen Bereichen
+- Multi-Category Landing Pages
 
 ## Frontend-Nutzung
 

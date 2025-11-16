@@ -38,6 +38,7 @@ Siehe [EXTERNAL_FIELD_RENDERER_EXAMPLE.md](EXTERNAL_FIELD_RENDERER_EXAMPLE.md) f
   - `CheckboxFieldRenderer` - checkbox
   - `MediaLinkFieldRenderer` - media, medialist, link, linklist
   - `CategoryFieldRenderer` - **NEU:** Hierarchische Kategorie-Auswahl
+  - `CategoryListFieldRenderer` - **NEU:** Mehrfachauswahl von Kategorien
 - ✅ **Deprecated Field Renderer:**
   - `BannerSelectFieldRenderer` - Temporär für `banner_select` (wird in 2.0 entfernt)
 
