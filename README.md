@@ -7,11 +7,26 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 📝 **DocBlock-basierte Konfiguration** - Template-Settings direkt im Template-Code definieren
 - 🌍 **Multi-Domain Support** - Unterschiedliche Einstellungen pro YRewrite-Domain
 - 🌐 **Mehrsprachigkeit** - Separate Einstellungen für jede Sprache mit Fallback
-- 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist, uikit_theme_select u.v.m.
+- 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist u.v.m.
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
-- 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges, UIKit Theme Select mit Farbvorschau
+- 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges
 - 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
-- 🔌 **UIKit Theme Builder Integration** - Optionale Theme-Auswahl wenn Addon installiert
+- 🔌 **Erweiterbar** - Extension Point System für eigene Feldtypen durch externe Addons
+
+## Erweiterbarkeit für externe Addons
+
+Ab Version 1.x können externe Addons eigene Feldtypen registrieren:
+
+```php
+// In boot.php des externen Addons
+rex_extension::register('TEMPLATE_MANAGER_FIELD_RENDERERS', function($ep) {
+    $renderers = $ep->getSubject();
+    $renderers[] = new \MeinAddon\TemplateManagerFieldRenderer();
+    return $renderers;
+});
+```
+
+Siehe [EXTERNAL_FIELD_RENDERER_EXAMPLE.md](EXTERNAL_FIELD_RENDERER_EXAMPLE.md) für vollständige Beispiele.
 
 ## Installation
 
@@ -39,7 +54,6 @@ Das Addon enthält ein vorkonfiguriertes Demo-Template:
 - `tel` - Telefonnummer
 - `linklist` - Footer-Links
 - `medialist` - Header-Bilder
-- `uikit_theme_select` - UIKit Theme (optional)
 - `checkbox` - Breadcrumbs anzeigen
 
 Import über: **Template Manager** → **Setup** → **Demo-Template jetzt importieren**
@@ -65,7 +79,6 @@ Füge einen PHP-DocBlock-Kommentar am Anfang deines Templates ein mit einem `DOM
  * tm_contact_phone: tel|Telefon|+49 123 456789|Kontakt-Telefonnummer
  * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer-Navigation
  * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
- * tm_uikit_theme: uikit_theme_select|UIKit Theme||Theme auswählen (nur wenn Addon installiert)
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  */
 ?>
@@ -119,9 +132,9 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Links** |
 | `link` | Interner REDAXO-Link (natives Widget) | `5` (Artikel-ID) |
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
-| **Spezial** |
-| `uikit_theme_select` | UIKit Theme Auswahl (nur wenn Addon installiert) | `` |
-| `banner_select` | UIKit Banner Auswahl (nur wenn Addon installiert) | `` |
+| **Struktur** |
+| `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
+| `categorylist` | Mehrere Kategorien auswählen | `1,5,8` (Kategorie-IDs) |
 
 ### Select-Optionen & Colorselect
 
@@ -173,83 +186,121 @@ tm_description: cke5|Beschreibung|full|Editor mit 'full' Profil
 
 **Wichtig:** CKE5-Inhalte sind bereits HTML-formatiert und sollten **nicht** mit `rex_escape()` ausgegeben werden!
 
-### UIKit Theme Select
+### Category Select
 
-Der Feldtyp `uikit_theme_select` ist nur verfügbar, wenn das **UIKit Theme Builder** Addon installiert ist.
-
-**Beispiel:**
-```
-tm_uikit_theme: uikit_theme_select|UIKit Theme||Wählen Sie ein UIKit Theme
-```
-
-**Features:**
-- Automatische Theme-Erkennung aus kompilierten Themes
-- Visuelle Darstellung mit Primary-Color Badge
-- Bootstrap Selectpicker mit Live-Search
-- Fallback-Meldung wenn Addon fehlt
-
-**Frontend-Nutzung:**
-```php
-<?php
-$themeName = TemplateManager::get('tm_uikit_theme');
-if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
-    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
-}
-?>
-```
-
-### UIKit Banner Select
-
-Der Feldtyp `banner_select` ist nur verfügbar, wenn das **UIKit Banner Design** Addon installiert ist.
+Der Feldtyp `category` bietet eine hierarchische Kategorie-Auswahl mit korrekter Struktur-Darstellung:
 
 **Beispiel:**
 ```
-tm_banner_id: banner_select|Header Banner||Optional: Banner nach der Navbar anzeigen
+tm_news_category: category|News-Kategorie|5|Kategorie für News-Artikel
+tm_main_category: category|Hauptkategorie||Root-Kategorie auswählen
 ```
 
 **Features:**
-- Automatische Banner-Erkennung aus Banner Designer
+- Hierarchische Darstellung mit Einrückung
+- Kategorie-IDs werden angezeigt: "Name [ID]"
+- Berechtigungs-Prüfung (nur Kategorien mit Zugriff)
+- "Homepage" Option für Root-Level (ID: 0)
+- Berücksichtigt aktuelle Sprache
 - Bootstrap Selectpicker mit Live-Search
-- Vorschau-Link zum Banner
-- "Kein Banner" Option
-- Fallback-Meldung wenn Addon fehlt
 
 **Frontend-Nutzung:**
 ```php
 <?php
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
 
-// Banner ID aus Template Manager laden
-$bannerId = TemplateManager::get('tm_banner_id', '');
+// Kategorie-ID abrufen
+$categoryId = TemplateManager::get('tm_news_category');
 
-// Banner rendern wenn gesetzt
-if (!empty($bannerId) && is_numeric($bannerId)) {
-    echo UikitBannerRenderer::render((int)$bannerId);
+if ($categoryId) {
+    // Kategorie-Objekt laden
+    $category = rex_category::get($categoryId);
+    
+    if ($category) {
+        echo '<h2>' . rex_escape($category->getName()) . '</h2>';
+        
+        // Artikel der Kategorie auflisten
+        $articles = $category->getArticles();
+        foreach ($articles as $article) {
+            if (!$article->isStartArticle()) {
+                echo '<a href="' . $article->getUrl() . '">';
+                echo rex_escape($article->getName());
+                echo '</a><br>';
+            }
+        }
+    }
 }
 ?>
 ```
 
-**Typische Platzierung:**
+**Typische Verwendung:**
+- News-Kategorie für Artikel-Listen
+- Landingpage-Kategorie
+- Produkt-Kategorie
+- Filterkategorien
+
+### CategoryList Select
+
+Der Feldtyp `categorylist` bietet Mehrfachauswahl von Kategorien mit hierarchischer Darstellung:
+
+**Beispiel:**
+```
+tm_news_categories: categorylist|News-Kategorien||Mehrere Kategorien für News-Filter
+tm_product_categories: categorylist|Produkt-Kategorien|5,8|Standard-Produkt-Kategorien
+```
+
+**Features:**
+- Mehrfachauswahl mit Checkboxen
+- Hierarchische Darstellung mit Einrückung
+- Kategorie-IDs werden angezeigt: "Name [ID]"
+- "Alle auswählen / Keine" Buttons
+- Berechtigungs-Prüfung
+- Bootstrap Selectpicker mit Live-Search
+
+**Frontend-Nutzung:**
 ```php
-<!-- Header mit Navigation -->
-<header>
-    <nav><!-- Navigation --></nav>
-</header>
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
 
-<!-- Optional: Banner nach Navbar -->
-<?php 
-$bannerId = TemplateManager::get('tm_banner_id', '');
-if (!empty($bannerId) && is_numeric($bannerId)) {
-    echo UikitBannerRenderer::render((int)$bannerId);
+// Kategorie-IDs abrufen (komma-separiert)
+$categoryIds = TemplateManager::get('tm_news_categories');
+
+if ($categoryIds) {
+    $categoryIds = array_filter(array_map('intval', explode(',', $categoryIds)));
+    
+    echo '<div class="category-filter">';
+    foreach ($categoryIds as $catId) {
+        $category = rex_category::get($catId);
+        if ($category) {
+            echo '<a href="' . $category->getUrl() . '" class="btn">';
+            echo rex_escape($category->getName());
+            echo '</a> ';
+        }
+    }
+    echo '</div>';
+    
+    // Oder: Artikel aus allen ausgewählten Kategorien
+    $articles = [];
+    foreach ($categoryIds as $catId) {
+        $category = rex_category::get($catId);
+        if ($category) {
+            $articles = array_merge($articles, $category->getArticles());
+        }
+    }
+    
+    // Artikel ausgeben...
 }
 ?>
-
-<!-- Main Content -->
-<main>
-    <?php echo 'REX_ARTICLE[]' ?>
-</main>
 ```
+
+**Typische Verwendung:**
+- Mehrere News-Kategorien
+- Produkt-Filtergruppen
+- Content-Aggregation aus verschiedenen Bereichen
+- Multi-Category Landing Pages
+
+## Frontend-Nutzung
+
 
 ## Frontend-Nutzung
 
@@ -353,15 +404,6 @@ $allSettings = TemplateManager::getAll();
         --primary-dark: color-mix(in srgb, var(--primary-color) 80%, black);
     }
 </style>
-
-<!-- UIKit Theme einbinden (optional) -->
-<?php
-$themeName = TemplateManager::get('tm_uikit_theme');
-if ($themeName && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $cssUrl = \UikitThemeBuilder\PathManager::getThemesCompiledPublicUrl($themeName . '.css');
-    echo '<link rel="stylesheet" href="' . $cssUrl . '">';
-}
-?>
 ```
 
 ## Backend-Nutzung

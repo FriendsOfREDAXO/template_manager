@@ -18,7 +18,8 @@
  * tm_start_article: link|Startseite||Link zur Startseite (für Logo-Klick)
  * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
  * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
- * tm_main_category: sqlselect|Hauptkategorie|SELECT id, name FROM rex_article WHERE parent_id = 0 AND startarticle = 1 ORDER BY name|Artikel-Kategorie für Hauptnavigation
+ * tm_main_category: category|Hauptkategorie||Artikel-Kategorie für Hauptnavigation
+ * tm_service_categories: categorylist|Service-Kategorien||Mehrere Kategorien für Services/Leistungen
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
  */
@@ -398,8 +399,8 @@ if ($showBreadcrumbs && !$isStartArticle):
                 <h3>Features:</h3>
                 <ul>
                     <li>✅ Dark/Light Mode Unterstützung (automatisch basierend auf System-Einstellungen)</li>
-                    <li>✅ 15+ konfigurierbare Einstellungen über Template Manager</li>
-                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, colorselect, sqlselect, checkbox)</li>
+                    <li>✅ 16+ konfigurierbare Einstellungen über Template Manager</li>
+                    <li>✅ Alle Feldtypen demonstriert (text, textarea, number, email, tel, media, medialist, link, linklist, category, categorylist, colorselect, checkbox)</li>
                     <li>✅ Modernes, responsives Design ohne Framework</li>
                     <li>✅ CSS Custom Properties für einfaches Theming</li>
                     <li>✅ Barrierefrei (WCAG 2.1 AA)</li>
@@ -421,6 +422,38 @@ if ($showBreadcrumbs && !$isStartArticle):
                     <?php if (TemplateManager::get('tm_opening_hours')): ?>
                     <p><strong>Öffnungszeiten:</strong> <?= rex_escape(TemplateManager::get('tm_opening_hours')) ?></p>
                     <?php endif; ?>
+                    <?php 
+                    $mainCategory = TemplateManager::get('tm_main_category');
+                    if ($mainCategory && is_numeric($mainCategory)):
+                        $category = rex_category::get((int)$mainCategory);
+                        if ($category):
+                    ?>
+                    <p><strong>Hauptkategorie:</strong> <a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></p>
+                    <?php 
+                        endif;
+                    endif; 
+                    ?>
+                    <?php 
+                    $serviceCategories = TemplateManager::get('tm_service_categories');
+                    if ($serviceCategories):
+                        $categoryIds = array_filter(array_map('intval', explode(',', $serviceCategories)));
+                        if (!empty($categoryIds)):
+                    ?>
+                    <p><strong>Service-Kategorien:</strong></p>
+                    <ul style="margin: 0.5rem 0;">
+                    <?php foreach ($categoryIds as $catId):
+                        $category = rex_category::get($catId);
+                        if ($category):
+                    ?>
+                        <li><a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></li>
+                    <?php 
+                        endif;
+                    endforeach; ?>
+                    </ul>
+                    <?php 
+                        endif;
+                    endif; 
+                    ?>
                 </div>
                 
                 <h3>Nächste Schritte:</h3>
