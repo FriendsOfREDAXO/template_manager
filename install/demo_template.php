@@ -422,6 +422,38 @@ if ($showBreadcrumbs && !$isStartArticle):
                     <?php if (TemplateManager::get('tm_opening_hours')): ?>
                     <p><strong>Öffnungszeiten:</strong> <?= rex_escape(TemplateManager::get('tm_opening_hours')) ?></p>
                     <?php endif; ?>
+                    <?php 
+                    $mainCategory = TemplateManager::get('tm_main_category');
+                    if ($mainCategory && is_numeric($mainCategory)):
+                        $category = rex_category::get((int)$mainCategory);
+                        if ($category):
+                    ?>
+                    <p><strong>Hauptkategorie:</strong> <a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></p>
+                    <?php 
+                        endif;
+                    endif; 
+                    ?>
+                    <?php 
+                    $serviceCategories = TemplateManager::get('tm_service_categories');
+                    if ($serviceCategories):
+                        $categoryIds = array_filter(array_map('intval', explode(',', $serviceCategories)));
+                        if (!empty($categoryIds)):
+                    ?>
+                    <p><strong>Service-Kategorien:</strong></p>
+                    <ul style="margin: 0.5rem 0;">
+                    <?php foreach ($categoryIds as $catId):
+                        $category = rex_category::get($catId);
+                        if ($category):
+                    ?>
+                        <li><a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></li>
+                    <?php 
+                        endif;
+                    endforeach; ?>
+                    </ul>
+                    <?php 
+                        endif;
+                    endif; 
+                    ?>
                 </div>
                 
                 <h3>Nächste Schritte:</h3>
