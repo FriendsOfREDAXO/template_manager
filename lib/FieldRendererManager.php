@@ -38,6 +38,7 @@ class FieldRendererManager
             new FieldRenderer\MediaLinkFieldRenderer(),
             new FieldRenderer\CategoryFieldRenderer(),
             new FieldRenderer\CategoryListFieldRenderer(),
+            new FieldRenderer\ExternalLinklistFieldRenderer(),
         ];
         
         // Extension Point: Externe Addons können eigene Renderer registrieren
