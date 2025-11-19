@@ -597,9 +597,29 @@ TemplateManager::getAll(
 
 MIT License
 
+## Changelog
+
+### Version 1.1.0 (19.11.2025)
+- ✨ **Neue Feldtypen**: `banner_select` für UIKit Banner Design Integration
+- 🎨 **Footer Design**: Professionelle rechtliche Gestaltung mit kompakten Link-Abständen
+- 📱 **Mobile Optimierung**: Verbesserte Navigation mit größerem Hamburger-Icon
+- 🌐 **Multi-Column Footer**: Unterstützung für flexible Grid-Layouts
+- ♿ **Accessibility**: Responsive Legal-Navigation mit verbesserter Mobile-Darstellung
+
+### Version 1.0.0 (Initial Release)
+- 🎉 Erste öffentliche Version
+- 📝 DocBlock-basierte Konfiguration
+- 🌍 Multi-Domain Support mit YRewrite
+- 🌐 Mehrsprachigkeit mit Fallback-Logik
+- 🎨 20+ Feldtypen
+- 🔧 Native REDAXO Widgets
+- 🚀 Statische Frontend-API
+- 📦 Demo-Template
+
 ## Support
 
-- GitHub Issues: [https://github.com/FriendsOfREDAXO/template_manager)
+- GitHub Issues: https://github.com/FriendsOfREDAXO/template_manager/issues
+- GitHub Repository: https://github.com/FriendsOfREDAXO/template_manager
 
 ## Credits
 
