@@ -8,12 +8,19 @@ if (rex_post('import', 'bool')) {
     
     if (file_exists($demoTemplateFile)) {
         $demoContent = file_get_contents($demoTemplateFile);
+        $templateKey = 'tm_modern_business';
+        $templateName = 'Modern Business (Demo)';
         
-        // Template erstellen - EXAKT wie REDAXO Core
+        // Prüfen ob Template mit diesem Key bereits existiert
+        $existingSql = rex_sql::factory();
+        $existingSql->setQuery('SELECT id FROM ' . rex::getTable('template') . ' WHERE `key` = :key LIMIT 1', ['key' => $templateKey]);
+        $existingId = $existingSql->getRows() > 0 ? (int) $existingSql->getValue('id') : null;
+        
+        // Template erstellen oder aktualisieren
         $templateSql = rex_sql::factory();
         $templateSql->setTable(rex::getTable('template'));
-        $templateSql->setValue('key', 'tm_modern_business');
-        $templateSql->setValue('name', 'Modern Business (Demo)');
+        $templateSql->setValue('key', $templateKey);
+        $templateSql->setValue('name', $templateName);
         $templateSql->setValue('content', $demoContent);
         $templateSql->setValue('active', 1);
         
@@ -25,26 +32,49 @@ if (rex_post('import', 'bool')) {
         ];
         $templateSql->setArrayValue('attributes', $attributes);
         
-        // WICHTIG: Global Fields wie REDAXO Core
-        $templateSql->addGlobalCreateFields();
-        
         try {
-            $templateSql->insert();
-            $templateId = (int) $templateSql->getLastId();
+            if ($existingId !== null) {
+                // Vorhandenes Template aktualisieren
+                $templateSql->addGlobalUpdateFields();
+                $templateSql->setWhere(['id' => $existingId]);
+                $templateSql->update();
+                $templateId = $existingId;
+                $isUpdate = true;
+                
+                // Extension Point für Update
+                rex_extension::registerPoint(new rex_extension_point('TEMPLATE_UPDATED', '', [
+                    'id' => $templateId,
+                    'key' => $templateKey,
+                    'name' => $templateName,
+                    'content' => $demoContent,
+                    'active' => 1,
+                ]));
+            } else {
+                // Neues Template erstellen
+                $templateSql->addGlobalCreateFields();
+                $templateSql->insert();
+                $templateId = (int) $templateSql->getLastId();
+                $isUpdate = false;
+                
+                // Extension Point für neues Template
+                rex_extension::registerPoint(new rex_extension_point('TEMPLATE_ADDED', '', [
+                    'id' => $templateId,
+                    'key' => $templateKey,
+                    'name' => $templateName,
+                    'content' => $demoContent,
+                    'active' => 1,
+                ]));
+            }
             
-            // Template-Cache löschen wie REDAXO Core
+            // Template-Cache löschen
             rex_template_cache::delete($templateId);
             
-            // Extension Point wie REDAXO Core
-            rex_extension::registerPoint(new rex_extension_point('TEMPLATE_ADDED', '', [
-                'id' => $templateId,
-                'key' => 'tm_modern_business',
-                'name' => 'Modern Business (Demo)',
-                'content' => $demoContent,
-                'active' => 1,
-            ]));
-            
-            $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
+            // Erfolgsmeldung
+            if ($isUpdate) {
+                $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_updated', $templateId) . '</p>';
+            } else {
+                $content = '<p class="text-success"><i class="rex-icon fa-check"></i> ' . $addon->i18n('template_manager_setup_import_success', $templateId) . '</p>';
+            }
             $content .= '<p><a href="' . rex_url::backendPage('template_manager/config', ['template_id' => $templateId]) . '" class="btn btn-primary">Jetzt konfigurieren</a></p>';
             
             $fragment = new rex_fragment();

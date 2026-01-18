@@ -40,6 +40,7 @@ class FieldRendererManager
             new FieldRenderer\CategoryFieldRenderer(),
             new FieldRenderer\CategoryListFieldRenderer(),
             new FieldRenderer\ExternalLinklistFieldRenderer(),
+            new FieldRenderer\SocialLinksFieldRenderer(),
         ];
         
         // Extension Point: Externe Addons können eigene Renderer registrieren

@@ -80,10 +80,11 @@ class SelectFieldRenderer extends AbstractFieldRenderer
         
         $html .= '</select>';
         
-        // Selectpicker initialisieren
+        // Selectpicker initialisieren - Name muss für jQuery-Selektor escaped werden
+        $escapedName = preg_replace('/([\\[\\]])/', '\\\\\\\\$1', $name);
         $html .= $this->renderScript('
             jQuery(function($) {
-                $("select[name=" + ' . json_encode($name) . ' + "]").selectpicker("refresh");
+                $("select[name=\'' . $escapedName . '\']").selectpicker("refresh");
             });
         ');
         
@@ -130,10 +131,11 @@ class SelectFieldRenderer extends AbstractFieldRenderer
             
             $html .= '</select>';
             
-            // Selectpicker initialisieren
+            // Selectpicker initialisieren - Name muss für jQuery-Selektor escaped werden
+            $escapedName = preg_replace('/([\\[\\]])/', '\\\\\\\\$1', $name);
             $html .= $this->renderScript('
                 jQuery(function($) {
-                    $("select[name=" + ' . json_encode($name) . ' + "]").selectpicker("refresh");
+                    $("select[name=\'' . $escapedName . '\']").selectpicker("refresh");
                 });
             ');
             

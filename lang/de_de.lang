@@ -57,6 +57,7 @@ template_manager_setup_import_feature_6 = Responsive Design
 template_manager_setup_import_feature_7 = Inline JavaScript mit REDAXO Nonce (CSP-sicher)
 template_manager_setup_import_button = Demo-Template jetzt importieren
 template_manager_setup_import_success = Demo-Template "Modern Business (Demo)" wurde erfolgreich importiert! Template-ID: {0}
+template_manager_setup_import_updated = Demo-Template "Modern Business (Demo)" wurde erfolgreich aktualisiert! Template-ID: {0}
 template_manager_setup_import_error = Fehler beim Importieren: {0}
 template_manager_setup_import_notfound = Demo-Template-Datei nicht gefunden!
 

@@ -22,6 +22,7 @@
  * tm_service_categories: categorylist|Service-Kategorien||Mehrere Kategorien für Services/Leistungen
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
  * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
+ * tm_social_links: social_links|Social Media Links|fa|Verlinkte Social-Media-Profile (sortierbar, nur Font Awesome Icons)
  */
 
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
@@ -33,7 +34,10 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= rex_escape($this->getValue('name')) ?> | <?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?></title>
     
-        <style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
         :root {
             --primary-color: <?= TemplateManager::get('tm_primary_color', '#005d40') ?>;
             --primary-dark: color-mix(in srgb, var(--primary-color) 80%, black);
@@ -243,6 +247,58 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
             text-decoration: underline;
         }
         
+        /* Settings Info Box */
+        .settings-info-box {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        @media (prefers-color-scheme: light) {
+            .settings-info-box {
+                background: #fff;
+                border: 1px solid var(--gray-200);
+                color: var(--text-color);
+            }
+            .settings-info-box p {
+                color: #333;
+            }
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .settings-info-box {
+                background: var(--gray-200);
+                border: 1px solid var(--gray-300);
+                color: var(--text-color);
+            }
+            .settings-info-box p {
+                color: #e9ecef;
+            }
+        }
+        
+        .settings-info-box p {
+            margin: 0.5rem 0;
+        }
+        
+        .settings-info-box p:first-child {
+            margin-top: 0;
+        }
+        
+        .settings-info-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .color-swatch {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--gray-300);
+            vertical-align: middle;
+            border-radius: 3px;
+            margin-right: 0.25rem;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             header .container {
@@ -394,7 +450,7 @@ if ($showBreadcrumbs && !$isStartArticle):
                     <i style="font-style: normal;">⚠️</i> Demo-Template
                 </h2>
                 <p><strong>Dies ist ein Demo-Template des Template Managers.</strong></p>
-                <p>Dieses Template dient nur zu Demonstrationszwecken und ist nicht für den produktiven Einsatz gedacht. Es zeigt die Funktionsweise der Template Manager Settings.</p>
+                <p>Dieses Template dient als <strong>Ausgangspunkt</strong> für eigene Projekte und zeigt die Funktionsweise der Template Manager Settings. Es kann als Basis verwendet werden, allerdings steht noch einige Arbeit an, um es an die individuellen Anforderungen Ihres Projekts anzupassen.</p>
                 
                 <h3>Features:</h3>
                 <ul>
@@ -407,12 +463,12 @@ if ($showBreadcrumbs && !$isStartArticle):
                 </ul>
                 
                 <h3>Konfigurierte Einstellungen:</h3>
-                <div style="background: white; padding: 1rem; border-radius: var(--border-radius); margin: 1rem 0; font-size: 0.9rem;">
+                <div class="settings-info-box">
                     <p><strong>Firmenname:</strong> <?= rex_escape(TemplateManager::get('tm_company_name', 'Nicht konfiguriert')) ?></p>
                     <?php if (TemplateManager::get('tm_slogan')): ?>
                     <p><strong>Slogan:</strong> <?= rex_escape(TemplateManager::get('tm_slogan')) ?></p>
                     <?php endif; ?>
-                    <p><strong>Primärfarbe:</strong> <span style="display:inline-block;width:16px;height:16px;background:<?= TemplateManager::get('tm_primary_color', '#005d40') ?>;border:1px solid #ccc;vertical-align:middle;border-radius:3px;"></span> <?= TemplateManager::get('tm_primary_color', '#005d40') ?></p>
+                    <p><strong>Primärfarbe:</strong> <span class="color-swatch" style="background:<?= TemplateManager::get('tm_primary_color', '#005d40') ?>"></span> <?= TemplateManager::get('tm_primary_color', '#005d40') ?></p>
                     <?php if (TemplateManager::get('tm_employee_count')): ?>
                     <p><strong>Mitarbeiter:</strong> <?= (int)TemplateManager::get('tm_employee_count') ?></p>
                     <?php endif; ?>
@@ -475,6 +531,52 @@ if ($showBreadcrumbs && !$isStartArticle):
 <!-- Footer -->
 <footer>
     <div class="container">
+        
+        <?php 
+        // Social Links ausgeben
+        $socialLinksJson = TemplateManager::get('tm_social_links');
+        $socialLinks = $socialLinksJson ? json_decode($socialLinksJson, true) : [];
+        
+        if (!empty($socialLinks)): 
+        ?>
+        <div class="social-links" style="margin-bottom: 1.5rem; text-align: center;">
+            <?php foreach ($socialLinks as $link): 
+                if (empty($link['url'])) continue;
+                $icon = $link['icon'] ?? '';
+                $url = $link['url'];
+                $label = $link['label'] ?? '';
+                
+                // Icon-Klasse ermitteln
+                $iconHtml = '';
+                if (str_starts_with($icon, 'uk-icon-')) {
+                    $ukIcon = str_replace('uk-icon-', '', $icon);
+                    $iconHtml = '<span uk-icon="icon: ' . rex_escape($ukIcon) . '; ratio: 1.2"></span>';
+                } elseif ($icon) {
+                    // Font Awesome: fa-brand wird zu fa-brands fa-brand
+                    $faClass = $icon;
+                    // Brands-Icons erkennen und korrekte Klasse setzen
+                    $brandIcons = ['fa-facebook', 'fa-facebook-f', 'fa-twitter', 'fa-x-twitter', 'fa-instagram', 'fa-linkedin', 'fa-linkedin-in', 'fa-xing', 'fa-youtube', 'fa-tiktok', 'fa-pinterest', 'fa-whatsapp', 'fa-telegram', 'fa-github', 'fa-gitlab', 'fa-discord', 'fa-slack', 'fa-mastodon', 'fa-threads', 'fa-bluesky', 'fa-reddit', 'fa-snapchat', 'fa-vimeo', 'fa-dribbble', 'fa-behance', 'fa-flickr', 'fa-spotify', 'fa-soundcloud', 'fa-twitch'];
+                    if (in_array($icon, $brandIcons, true)) {
+                        $faClass = 'fa-brands ' . $icon;
+                    } else {
+                        $faClass = 'fa-solid ' . $icon;
+                    }
+                    $iconHtml = '<i class="' . rex_escape($faClass) . '"></i>';
+                }
+            ?>
+            <a href="<?= rex_escape($url) ?>" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="social-link"
+               <?= $label ? 'title="' . rex_escape($label) . '"' : '' ?>
+               style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: 0 5px; border-radius: 50%; background: var(--gray-200); color: var(--text-color); text-decoration: none; transition: background 0.3s, transform 0.3s;"
+               onmouseover="this.style.background='var(--primary-color)'; this.style.color='#fff'; this.style.transform='translateY(-3px)';"
+               onmouseout="this.style.background='var(--gray-200)'; this.style.color='var(--text-color)'; this.style.transform='translateY(0)';">
+                <?= $iconHtml ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
         
         <?php 
         $footerLinks = TemplateManager::get('tm_footer_links');
