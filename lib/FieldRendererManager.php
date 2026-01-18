@@ -41,6 +41,7 @@ class FieldRendererManager
             new FieldRenderer\CategoryListFieldRenderer(),
             new FieldRenderer\ExternalLinklistFieldRenderer(),
             new FieldRenderer\SocialLinksFieldRenderer(),
+            new FieldRenderer\OpeningHoursFieldRenderer(),
         ];
         
         // Extension Point: Externe Addons können eigene Renderer registrieren

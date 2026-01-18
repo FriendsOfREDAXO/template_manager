@@ -41,20 +41,28 @@ Das Addon enthält ein vorkonfiguriertes Demo-Template:
 - **Name:** Modern Business (Demo)
 - **Features:**
   - Dark/Light Mode Support (automatisch basierend auf System-Einstellungen)
-  - 8 essenzielle Einstellungen (inkl. colorselect, medialist, uikit_theme_select)
+  - 16+ konfigurierbare Einstellungen
   - Modernes, responsives Design ohne Framework-Abhängigkeiten
   - CSS Custom Properties für einfaches Theming
   - Barrierefrei (WCAG 2.1 AA)
+  - Font Awesome 6 Integration
   - Demo-Content wenn noch kein Content vorhanden
 
 **Enthaltene Feldtypen:**
-- `text` - Firmenname
+- `text` - Firmenname, Slogan
 - `colorselect` - Akzentfarbe (8 vordefinierte Brand-Farben)
 - `email` - Kontakt E-Mail
 - `tel` - Telefonnummer
-- `linklist` - Footer-Links
+- `number` - Mitarbeiteranzahl, Gründungsjahr
+- `media` - Logo
 - `medialist` - Header-Bilder
-- `checkbox` - Breadcrumbs anzeigen
+- `link` - Startseite
+- `linklist` - Footer-Links
+- `category` - Hauptkategorie
+- `categorylist` - Service-Kategorien
+- `checkbox` - Breadcrumbs anzeigen, Kontaktinfo im Header
+- `social_links` - Social Media Links (Repeater mit Sortierung)
+- `opening_hours` - Strukturierte Öffnungszeiten (Google-Style)
 
 Import über: **Template Manager** → **Setup** → **Demo-Template jetzt importieren**
 
@@ -136,6 +144,9 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Struktur** |
 | `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
 | `categorylist` | Mehrere Kategorien auswählen | `1,5,8` (Kategorie-IDs) |
+| **Spezial-Felder** |
+| `social_links` | Social Media Links Repeater | JSON (Icon + URL + Label) |
+| `opening_hours` | Strukturierte Öffnungszeiten | JSON (Wochentage + Sonderzeiten) |
 
 ### External Linklist - Externe Links mit Repeater-Style
 
@@ -376,6 +387,367 @@ if ($categoryIds) {
 - Produkt-Filtergruppen
 - Content-Aggregation aus verschiedenen Bereichen
 - Multi-Category Landing Pages
+
+### Social Links - Social Media mit Repeater & Sortierung
+
+Der Feldtyp `social_links` bietet eine komfortable Verwaltung von Social Media Links mit Drag & Drop Sortierung:
+
+**Beispiel:**
+```
+tm_social_links: social_links|Social Media Links||Verlinkte Social-Media-Profile
+tm_social_links: social_links|Social Media Links|fa|Nur Font Awesome Icons
+tm_social_links: social_links|Social Media Links|uk|Nur UIKit Icons
+tm_social_links: social_links|Social Media Links|both|Beide Icon-Sets (Standard)
+```
+
+**Icon-Modus (im Default-Wert):**
+- `fa` - Nur Font Awesome Icons
+- `uk` - Nur UIKit Icons  
+- `both` oder leer - Beide Icon-Sets (Standard)
+
+**Backend-Features:**
+- ✅ **30+ vordefinierte Social Icons** (Font Awesome + UIKit)
+- ✅ **Drag & Drop Sortierung** mit Handle
+- ✅ **Pfeil-Buttons** zum manuellen Sortieren
+- ✅ **Live Icon-Vorschau** bei der Auswahl
+- ✅ **Optionales Label** pro Link
+- ✅ **Icon-Set wählbar** (fa, uk, both)
+
+**Enthaltene Icons:**
+- Facebook, Twitter/X, Instagram, LinkedIn, Xing, YouTube
+- TikTok, Pinterest, WhatsApp, Telegram, GitHub, GitLab
+- Discord, Slack, Mastodon, Threads, Bluesky, Reddit
+- Snapchat, Vimeo, Dribbble, Behance, Flickr, Spotify
+- SoundCloud, Twitch, RSS, E-Mail, Telefon, Webseite
+
+**Frontend-Nutzung:**
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+$socialLinksJson = TemplateManager::get('tm_social_links');
+$socialLinks = $socialLinksJson ? json_decode($socialLinksJson, true) : [];
+
+if (!empty($socialLinks)): ?>
+<div class="social-links">
+    <?php foreach ($socialLinks as $link): 
+        if (empty($link['url'])) continue;
+        $icon = $link['icon'] ?? '';
+        $url = $link['url'];
+        $label = $link['label'] ?? '';
+        
+        // Icon-Klasse ermitteln
+        if (str_starts_with($icon, 'uk-icon-')) {
+            // UIKit Icon
+            $ukIcon = str_replace('uk-icon-', '', $icon);
+            $iconHtml = '<span uk-icon="icon: ' . rex_escape($ukIcon) . '"></span>';
+        } else {
+            // Font Awesome (für FA6 CDN)
+            $brandIcons = ['fa-facebook', 'fa-twitter', 'fa-instagram', /* ... */];
+            $faClass = in_array($icon, $brandIcons, true) 
+                ? 'fa-brands ' . $icon 
+                : 'fa-solid ' . $icon;
+            $iconHtml = '<i class="' . rex_escape($faClass) . '"></i>';
+        }
+    ?>
+    <a href="<?= rex_escape($url) ?>" 
+       target="_blank" 
+       rel="noopener noreferrer"
+       <?= $label ? 'title="' . rex_escape($label) . '"' : '' ?>>
+        <?= $iconHtml ?>
+    </a>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+```
+
+**JSON-Datenstruktur:**
+```json
+[
+    { "icon": "fa-facebook", "url": "https://facebook.com/firma", "label": "Facebook" },
+    { "icon": "fa-instagram", "url": "https://instagram.com/firma", "label": "Instagram" },
+    { "icon": "uk-icon-github", "url": "https://github.com/firma", "label": "" }
+]
+```
+
+### Opening Hours - Strukturierte Öffnungszeiten (Google My Business Style)
+
+Der Feldtyp `opening_hours` bietet eine professionelle Verwaltung von Öffnungszeiten wie bei Google My Business:
+
+**Beispiel:**
+```
+tm_opening_hours: opening_hours|Öffnungszeiten||Geschäftszeiten inkl. Feiertage
+```
+
+**Backend-Features:**
+- ✅ **Reguläre Zeiten** pro Wochentag (Mo-So)
+- ✅ **Mehrere Zeitfenster pro Tag** (z.B. für Mittagspausen: 9-12 + 14-18 Uhr)
+- ✅ **Status-Optionen**: Geöffnet / Geschlossen / 24h geöffnet
+- ✅ **Schnellaktionen**: "Mo → Werktage", "Alle geschlossen", "Zurücksetzen"
+- ✅ **Kopier-Funktion**: Zeiten auf andere Tage/Gruppen übertragen
+- ✅ **Sonderzeiten/Feiertage** mit 15 vordefinierten deutschen Feiertagen
+- ✅ **Bewegliche Feiertage**: Ostern, Pfingsten, Christi Himmelfahrt etc.
+- ✅ **Live-Vorschau** mit Tabelle und "heute"-Markierung
+- ✅ **3 Tabs**: Reguläre Zeiten | Sonderzeiten | Vorschau
+- ✅ **Freitext/Notiz-Feld** für zusätzliche Hinweise (z.B. "Termine nach Vereinbarung")
+- ✅ **Auto-Repair**: Feiertage werden automatisch erkannt und repariert
+
+**Vordefinierte Feiertage:**
+- Neujahr, Karfreitag, Ostersonntag, Ostermontag
+- Tag der Arbeit, Christi Himmelfahrt, Pfingstsonntag, Pfingstmontag
+- Fronleichnam, Tag der Deutschen Einheit, Allerheiligen
+- Heiligabend, 1. + 2. Weihnachtstag, Silvester
+
+**Frontend-Nutzung mit OpeningHoursHelper (empfohlen):**
+
+Die `OpeningHoursHelper`-Klasse bietet eine komfortable API mit Übersetzungen und vorformatierten Daten:
+
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+use FriendsOfRedaxo\TemplateManager\OpeningHoursHelper;
+
+// Helper instanziieren (Sprache wird automatisch erkannt)
+$helper = new OpeningHoursHelper(
+    TemplateManager::get('tm_opening_hours'),
+    rex_clang::getCurrent()->getCode() // 'de', 'en' etc.
+);
+
+if ($helper->hasData()):
+    $regularHours = $helper->getRegular();        // Alle Wochentage einzeln
+    $groupedHours = $helper->getRegularGrouped(); // Tage mit gleichen Zeiten zusammengefasst
+    $specialHours = $helper->getSpecial(5, true); // Max 5, nur zukünftige
+    $currentStatus = $helper->getCurrentStatus(); // Jetzt geöffnet?
+?>
+
+<!-- Status-Badge -->
+<?php if ($currentStatus['is_open']): ?>
+    <span class="badge badge-success"><?= rex_escape($currentStatus['label']) ?></span>
+    <?php if ($currentStatus['next_change_label']): ?>
+        <small><?= rex_escape($currentStatus['next_change_label']) ?></small>
+    <?php endif; ?>
+<?php else: ?>
+    <span class="badge badge-danger"><?= rex_escape($currentStatus['label']) ?></span>
+<?php endif; ?>
+
+<!-- Gruppierte Öffnungszeiten (empfohlen für kompakte Darstellung) -->
+<h3><?= rex_escape($helper->translate('labels.opening_hours')) ?></h3>
+<table>
+    <?php foreach ($groupedHours as $group): ?>
+    <tr<?= $group['contains_today'] ? ' class="today"' : '' ?>>
+        <td><?= rex_escape($group['label']) ?></td> <!-- z.B. "Mo - Fr" oder "Sa, So" -->
+        <td class="<?= $group['is_closed'] ? 'closed' : '' ?>">
+            <?= rex_escape($group['formatted']) ?>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+
+<!-- Freitext/Notiz anzeigen -->
+<?php if ($helper->hasNote()): ?>
+<p class="note"><em><?= rex_escape($helper->getNote()) ?></em></p>
+<?php endif; ?>
+
+<!-- Alternative: Alle Tage einzeln -->
+<!--
+<table>
+    <?php foreach ($regularHours as $day): ?>
+    <tr<?= $day['is_today'] ? ' class="today"' : '' ?>>
+        <td>
+            <?= rex_escape($day['label']) ?>
+            <?= $day['is_today'] ? ' <small>(' . rex_escape($helper->translate('labels.today')) . ')</small>' : '' ?>
+        </td>
+        <td class="<?= $day['is_closed'] ? 'closed' : '' ?>">
+            <?= rex_escape($day['formatted']) ?>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+-->
+
+<!-- Sonderöffnungszeiten -->
+<?php if (!empty($specialHours)): ?>
+<h4><?= rex_escape($helper->translate('labels.special_hours')) ?></h4>
+<ul>
+    <?php foreach ($specialHours as $special): ?>
+    <li>
+        <strong><?= rex_escape($special['display_name']) ?>:</strong>
+        <?= rex_escape($special['formatted']) ?>
+    </li>
+    <?php endforeach; ?>
+</ul>
+<?php endif; ?>
+
+<?php endif; ?>
+```
+
+**OpeningHoursHelper - Verfügbare Methoden:**
+
+| Methode | Beschreibung |
+|---------|--------------|
+| `hasData()` | Prüft ob Daten vorhanden sind |
+| `getRegular(bool $shortLabels = false)` | Reguläre Zeiten als Array (jeden Tag einzeln) |
+| `getRegularGrouped(bool $shortLabels = true)` | Aufeinanderfolgende Tage mit gleichen Zeiten zusammengefasst |
+| `getSpecial(?int $limit, bool $futureOnly)` | Sonderzeiten als Array |
+| `getToday()` | Heutigen Tag mit Status |
+| `isOpenNow()` | Prüft ob aktuell geöffnet |
+| `getCurrentStatus()` | Status-Array für "Jetzt geöffnet"-Anzeige |
+| `getNote()` | Freitext/Notiz abrufen (z.B. "Termine nach Vereinbarung") |
+| `hasNote()` | Prüft ob eine Notiz vorhanden ist |
+| `translate(string $key)` | Übersetzung abrufen |
+| `setLocale(string $locale)` | Sprache ändern |
+| `setTranslations(string $locale, array $translations)` | Eigene Übersetzungen setzen |
+
+**Eigene Übersetzungen hinzufügen:**
+
+```php
+$helper = new OpeningHoursHelper($json);
+
+// Französisch hinzufügen
+$helper->setTranslations('fr', [
+    'weekdays' => [
+        'monday' => 'Lundi',
+        'tuesday' => 'Mardi',
+        // ...
+    ],
+    'status' => [
+        'closed' => 'Fermé',
+        'open_24h' => 'Ouvert 24h/24',
+        'open' => 'Ouvert',
+    ],
+    'labels' => [
+        'today' => "aujourd'hui",
+        'opening_hours' => "Heures d'ouverture",
+        'special_hours' => 'Horaires spéciaux',
+        'we_are_open' => 'Nous sommes ouverts',
+        'we_are_closed' => 'Nous sommes fermés',
+        'time_suffix' => 'h',
+    ],
+]);
+```
+
+**Datenstruktur der Arrays:**
+
+```php
+// getRegular() gibt zurück (jeden Tag einzeln):
+[
+    'monday' => [
+        'key' => 'monday',
+        'label' => 'Montag',           // Übersetzt
+        'label_short' => 'Mo',         // Kurz
+        'label_full' => 'Montag',      // Lang
+        'status' => 'open',            // open, closed, 24h
+        'status_label' => 'Geöffnet',  // Übersetzt
+        'is_today' => true,            // Bool
+        'is_open' => true,             // Bool
+        'is_closed' => false,          // Bool
+        'is_24h' => false,             // Bool
+        'times' => [                   // Rohdaten
+            ['open' => '09:00', 'close' => '12:00'],
+            ['open' => '14:00', 'close' => '18:00'],
+        ],
+        'times_formatted' => '09:00–12:00, 14:00–18:00 Uhr', // Formatiert
+        'formatted' => '09:00–12:00, 14:00–18:00 Uhr',       // Status oder Zeiten
+    ],
+    // ...
+]
+
+// getRegularGrouped() gibt zurück (aufeinanderfolgende Tage mit gleichen Zeiten zusammengefasst):
+[
+    [
+        'label' => 'Mo - Fr',           // Kurzform-Bereich
+        'label_full' => 'Montag - Freitag', // Langform-Bereich
+        'days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        'day_count' => 5,
+        'status' => 'open',
+        'status_label' => 'Geöffnet',
+        'is_open' => true,
+        'is_closed' => false,
+        'is_24h' => false,
+        'times' => [...],
+        'times_formatted' => '09:00–18:00 Uhr',
+        'formatted' => '09:00–18:00 Uhr',
+        'contains_today' => true,       // Ist der aktuelle Tag in dieser Gruppe?
+    ],
+    [
+        'label' => 'Sa, So',            // Zwei aufeinanderfolgende Tage
+        'label_full' => 'Samstag, Sonntag',
+        'day_count' => 2,
+        'is_closed' => true,
+        'formatted' => 'Geschlossen',
+        'contains_today' => false,
+    ],
+]
+
+// getSpecial() gibt zurück:
+[
+    [
+        'date' => '12-24',                    // Originaldatum
+        'date_resolved' => '2026-12-24',      // Aufgelöstes Datum
+        'date_formatted' => '24.12.',         // Formatiert
+        'name' => 'Heiligabend',              // Name
+        'display_name' => 'Heiligabend',      // Name oder formatiertes Datum
+        'status' => 'open',
+        'status_label' => 'Geöffnet',
+        'is_holiday' => true,                 // Vordefinierter Feiertag
+        'is_open' => true,
+        'is_closed' => false,
+        'times' => [...],
+        'times_formatted' => '09:00–14:00 Uhr',
+        'formatted' => '09:00–14:00 Uhr',
+    ],
+    // ...
+]
+
+// getCurrentStatus() gibt zurück:
+[
+    'is_open' => true,
+    'label' => 'Wir haben geöffnet',
+    'today' => [...],                     // getToday() Daten
+    'next_change' => '18:00',             // Nächste Statusänderung
+    'next_change_label' => 'Schließt um 18:00 Uhr',
+]
+```
+
+**JSON-Datenstruktur:**
+```json
+{
+    "regular": {
+        "monday": { 
+            "status": "open", 
+            "times": [
+                { "open": "09:00", "close": "12:00" },
+                { "open": "14:00", "close": "18:00" }
+            ]
+        },
+        "saturday": { "status": "closed", "times": [] },
+        "sunday": { "status": "closed", "times": [] }
+    },
+    "special": [
+        { 
+            "date": "12-24", 
+            "name": "Heiligabend", 
+            "status": "open", 
+            "times": [{ "open": "09:00", "close": "14:00" }],
+            "holiday": true
+        },
+        { 
+            "date": "2026-01-02", 
+            "name": "Betriebsferien", 
+            "status": "closed", 
+            "times": [],
+            "holiday": false
+        }
+    ],
+    "note": "Termine nach Vereinbarung unter 0123-456789"
+}
+```
+
+**Typische Verwendung:**
+- Geschäfts-/Ladenöffnungszeiten
+- Praxis-/Kanzlei-Sprechstunden
+- Restaurant-Öffnungszeiten mit Mittagspause
+- Service-Hotline Erreichbarkeit
 
 ## Frontend-Nutzung
 
