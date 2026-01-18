@@ -35,11 +35,11 @@ class FieldRendererManager
             new FieldRenderer\TextareaFieldRenderer(),
             new FieldRenderer\SelectFieldRenderer(),
             new FieldRenderer\CheckboxFieldRenderer(),
-            new FieldRenderer\MediaLinkFieldRenderer(),
+            new FieldRenderer\MediaFieldRenderer(),
+            new FieldRenderer\LinkFieldRenderer(),
             new FieldRenderer\CategoryFieldRenderer(),
             new FieldRenderer\CategoryListFieldRenderer(),
             new FieldRenderer\ExternalLinklistFieldRenderer(),
-            new FieldRenderer\ArticleFieldRenderer(),
         ];
         
         // Extension Point: Externe Addons können eigene Renderer registrieren
