@@ -132,9 +132,87 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 | **Links** |
 | `link` | Interner REDAXO-Link (natives Widget) | `5` (Artikel-ID) |
 | `linklist` | Liste interner Links (natives Widget) | `1,5,8` (Artikel-IDs) |
+| `external_linklist` | Externe Link-Liste mit Live-Vorschau | `Name\|URL\|Beschreibung` (ein Link pro Zeile) |
 | **Struktur** |
 | `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
 | `categorylist` | Mehrere Kategorien auswählen | `1,5,8` (Kategorie-IDs) |
+
+### External Linklist - Externe Links mit Repeater-Style
+
+Der Feldtyp `external_linklist` ermöglicht die Verwaltung mehrerer externer Links mit Live-Vorschau im Backend:
+
+**Format:** Ein Link pro Zeile im Format `Name|URL|Beschreibung` (Beschreibung optional)
+
+**Beispiel:**
+```
+tm_footer_partners: external_linklist|Partner-Links||Externe Partner verlinken
+```
+
+**Backend-Features:**
+- ✅ **Live-Vorschau** mit Validierung (zeigt Fehler sofort an)
+- ✅ **URL-Validierung** (muss mit http:// oder https:// beginnen)
+- ✅ **Format-Hilfe** direkt im Feld
+- ✅ **Kommentare** möglich (Zeilen mit # oder // am Anfang)
+- ✅ **Monospace-Font** für bessere Lesbarkeit
+
+**Eingabe-Beispiel:**
+```
+WDFV|https://wdfv.de|Westdeutscher Fußballverband
+FVN|https://fvn.de|Fußballverband Niederrhein
+FVM|https://fvm.de|Fußballverband Mittelrhein
+# Kommentare sind möglich
+FLVW|https://flvw.de|Fußball- und Leichtathletik-Verband Westfalen
+```
+
+**Frontend-Nutzung:**
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+use FriendsOfRedaxo\TemplateManager\ExternalLinklistWidget;
+
+// Variante 1: Direkt als HTML rendern
+echo '<ul>';
+echo ExternalLinklistWidget::renderHtml(
+    TemplateManager::get('tm_footer_partners'), 
+    true  // true = Links in neuem Tab öffnen
+);
+echo '</ul>';
+
+// Variante 2: Als Array parsen für individuelle Verarbeitung
+$links = ExternalLinklistWidget::parse(
+    TemplateManager::get('tm_footer_partners')
+);
+
+foreach ($links as $link) {
+    echo '<div class="partner-card">';
+    echo '<h3>' . rex_escape($link['name']) . '</h3>';
+    echo '<p>' . rex_escape($link['description']) . '</p>';
+    echo '<a href="' . rex_escape($link['url']) . '" target="_blank">';
+    echo 'Zur Website <i class="icon-external"></i>';
+    echo '</a>';
+    echo '</div>';
+}
+?>
+```
+
+**Rückgabe-Format der parse()-Methode:**
+```php
+[
+    [
+        'name' => 'WDFV',
+        'url' => 'https://wdfv.de',
+        'description' => 'Westdeutscher Fußballverband'
+    ],
+    // ...
+]
+```
+
+**Typische Verwendung:**
+- Footer-Links zu Verbänden/Partnern
+- Social Media Links
+- Externe Ressourcen
+- Sponsor-Listen
+- Tool/Service-Verzeichnisse
 
 ### Select-Optionen & Colorselect
 
@@ -597,9 +675,38 @@ TemplateManager::getAll(
 
 MIT License
 
+## Changelog
+
+### Version 1.2.0 (19.11.2025)
+- ✨ **Neuer Feldtyp**: `external_linklist` für externe Link-Listen mit Live-Vorschau
+- 🎨 **Repeater-Funktionalität**: Strukturierte externe Links (Name|URL|Beschreibung)
+- 🔍 **Live-Validierung**: URL-Prüfung und Format-Feedback im Backend
+- 📝 **Kommentar-Support**: Zeilen mit # oder // werden ignoriert
+- 🎯 **ExternalLinklistWidget**: Neue Helper-Klasse mit parse() und renderHtml() Methoden
+- 🏗️ **Architektur**: Eigener FieldRenderer statt textarea-Missbrauch
+- 📚 **Dokumentation**: Umfassende Beispiele für external_linklist Nutzung
+
+### Version 1.1.0 (19.11.2025)
+- ✨ **Neue Feldtypen**: `banner_select` für UIKit Banner Design Integration
+- 🎨 **Footer Design**: Professionelle rechtliche Gestaltung mit kompakten Link-Abständen
+- 📱 **Mobile Optimierung**: Verbesserte Navigation mit größerem Hamburger-Icon
+- 🌐 **Multi-Column Footer**: Unterstützung für flexible Grid-Layouts
+- ♿ **Accessibility**: Responsive Legal-Navigation mit verbesserter Mobile-Darstellung
+
+### Version 1.0.0 (Initial Release)
+- 🎉 Erste öffentliche Version
+- 📝 DocBlock-basierte Konfiguration
+- 🌍 Multi-Domain Support mit YRewrite
+- 🌐 Mehrsprachigkeit mit Fallback-Logik
+- 🎨 20+ Feldtypen
+- 🔧 Native REDAXO Widgets
+- 🚀 Statische Frontend-API
+- 📦 Demo-Template
+
 ## Support
 
-- GitHub Issues: [https://github.com/FriendsOfREDAXO/template_manager)
+- GitHub Issues: https://github.com/FriendsOfREDAXO/template_manager/issues
+- GitHub Repository: https://github.com/FriendsOfREDAXO/template_manager
 
 ## Credits
 
