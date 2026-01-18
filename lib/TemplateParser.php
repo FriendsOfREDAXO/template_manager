@@ -68,35 +68,35 @@ class TemplateParser
             // Wird später in renderSettingField() ausgeführt
             return ['_sql_query' => $defaultValue];
         }
-
+        
         if ($type !== 'select' && $type !== 'colorselect') {
             return null;
         }
-
+        
         // Bei select/colorselect ist der "default" Teil die Optionsliste
         // Format: wert1,wert2,wert3 oder wert1:Label 1,wert2:Label 2
         $optionsPart = $defaultValue;
-
+        
         if (empty($optionsPart)) {
             return [];
         }
-
+        
         $options = [];
-        $parts = str_getcsv($optionsPart, ',', '"', '\\');
-
+        $parts = explode(',', $optionsPart);
+        
         foreach ($parts as $part) {
             $part = trim($part);
-
+            
             if (str_contains($part, ':')) {
-                // Format: Label:wert
-                [$label, $value] = explode(':', $part, 2);
+                // Format: wert:Label
+                [$value, $label] = explode(':', $part, 2);
                 $options[trim($value)] = trim($label);
             } else {
                 // Format: wert (Label = Wert)
                 $options[$part] = $part;
             }
         }
-
+        
         return $options;
     }
     
