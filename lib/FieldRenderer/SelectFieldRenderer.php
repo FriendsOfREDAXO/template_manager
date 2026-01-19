@@ -38,7 +38,7 @@ class SelectFieldRenderer extends AbstractFieldRenderer
                  . '<input type="hidden" name="' . $name . '" value="">';
         }
         
-        $html = '<select class="form-control" name="' . $name . '">';
+        $html = '<select class="form-control selectpicker" name="' . $name . '">';
         
         foreach ($setting['options'] as $optValue => $optLabel) {
             $selected = $optValue === $value ? 'selected' : '';
@@ -48,6 +48,14 @@ class SelectFieldRenderer extends AbstractFieldRenderer
         }
         
         $html .= '</select>';
+        
+        // Selectpicker initialisieren - Name muss für jQuery-Selektor escaped werden
+        $escapedName = preg_replace('/([\\[\\]])/', '\\\\\\\\$1', $name);
+        $html .= $this->renderScript('
+            jQuery(function($) {
+                $("select[name=\'' . $escapedName . '\']").selectpicker("refresh");
+            });
+        ');
         
         return $html;
     }
