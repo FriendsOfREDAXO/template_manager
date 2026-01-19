@@ -111,6 +111,56 @@ tm_feldname: typ|Label|DefaultWert|Beschreibung
 
 **Wichtig:** Alle Feldnamen müssen mit `tm_` beginnen (Template Manager Prefix)!
 
+### Gruppierung mit Akkordeons
+
+Ab Version 1.3.0 können Einstellungen in thematische Gruppen organisiert werden:
+
+**Syntax:**
+```
+--- Gruppenname ---
+```
+
+Optional mit **Font Awesome 6 Icon**:
+```
+--- Gruppenname [fa-solid fa-icon] ---
+```
+
+Optional mit **Rechteverwaltung** (nur für bestimmte Benutzergruppen sichtbar):
+```
+--- Gruppenname [admin,developer] ---
+```
+
+Beides kombiniert:
+```
+--- Gruppenname [fa-solid fa-icon] [admin,developer] ---
+```
+
+**Beispiel:**
+```php
+/**
+ * DOMAIN_SETTINGS
+ * 
+ * --- Branding & Design [fa-solid fa-palette] ---
+ * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
+ * tm_logo: media|Logo||Firmenlogo (Header)
+ * tm_primary_color: colorselect|Akzentfarbe|#005d40|Hauptfarbe
+ * 
+ * --- Kontaktinformationen [fa-solid fa-address-book] ---
+ * tm_contact_email: email|E-Mail|info@beispiel.de|Kontakt E-Mail
+ * tm_contact_phone: tel|Telefon|+49 123 456789|Telefonnummer
+ * 
+ * --- Navigation & Links [fa-solid fa-bars] [admin,developer] ---
+ * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer
+ * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Navigation aktivieren
+ */
+```
+
+**Features:**
+- **Icons:** Font Awesome 6 Icons (solid, brands, regular) werden automatisch vor dem Gruppennamen angezeigt
+- **Rechte:** Admin sieht immer alles, andere Benutzer nur Gruppen ohne Rechte oder mit passender Rolle
+- **Accordion:** Gruppen werden als Bootstrap-Akkordeons dargestellt, erste Gruppe standardmäßig geöffnet
+- **Ohne Gruppen:** Alte Darstellung ohne Akkordeons bleibt erhalten
+
 ### Verfügbare Feldtypen
 
 | Typ | Beschreibung | Beispiel Default |

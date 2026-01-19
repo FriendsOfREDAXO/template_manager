@@ -1,31 +1,44 @@
 <?php
 /**
- * Modern Business Template
- * 
+ * Modern Business Template.
+ *
  * Modernes, schlankes Business-Template mit CSS Custom Properties
  * Ohne Framework-Abhängigkeiten, barrierefrei und performant
- * 
+ *
  * DOMAIN_SETTINGS
+ *
+ * --- Branding & Design [fa-solid fa-palette] ---
  * tm_company_name: text|Firmenname|Muster GmbH|Offizieller Firmenname
  * tm_slogan: textarea|Slogan|Ihre Experten für...|Kurzer Werbe-Slogan (2-3 Zeilen)
  * tm_primary_color: colorselect|Akzentfarbe|#005d40:#005d40 Brand-Grün,#7D192C:#7D192C Brand-Rot,#b98b73:#b98b73 Braun,#c9a088:#c9a088 Beige,#d4ab94:#d4ab94 Sand,#1e87f0:#1e87f0 UIKit Blau,#32d296:#32d296 Grün,#faa05a:#faa05a Orange|Akzentfarbe für Design
  * tm_logo: media|Logo||Firmenlogo (Header)
+ *
+ * --- Kontaktinformationen [fa-solid fa-address-book] ---
  * tm_contact_email: email|Kontakt E-Mail|info@beispiel.de|Hauptkontakt E-Mail
  * tm_contact_phone: tel|Telefon|+49 123 456789|Kontakt-Telefonnummer
  * tm_opening_hours: opening_hours|Öffnungszeiten||Strukturierte Öffnungszeiten mit Pausen und Feiertagen
+ * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
+ *
+ * --- Navigation & Links [fa-solid fa-bars] ---
  * tm_footer_links: linklist|Footer-Links||Artikel-IDs für Footer-Navigation
- * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
- * tm_start_article: link|Startseite||Link zur Startseite (für Logo-Klick)
- * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
- * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
  * tm_main_category: category|Hauptkategorie||Artikel-Kategorie für Hauptnavigation
  * tm_service_categories: categorylist|Service-Kategorien||Mehrere Kategorien für Services/Leistungen
+ * tm_start_article: link|Startseite||Link zur Startseite (für Logo-Klick)
  * tm_show_breadcrumbs: checkbox|Breadcrumbs anzeigen||Breadcrumb-Navigation aktivieren
- * tm_show_contact_info: checkbox|Kontaktinfo im Header||Telefon/E-Mail im Header anzeigen
+ *
+ * --- Medien & Bilder [fa-solid fa-images] ---
+ * tm_header_images: medialist|Header-Bilder||Bilder für Header-Slideshow
+ *
+ * --- Social Media [fa-brands fa-facebook] ---
  * tm_social_links: social_links|Social Media Links|fa|Verlinkte Social-Media-Profile (sortierbar, nur Font Awesome Icons)
+ *
+ * --- Firmendaten [fa-solid fa-building] [admin,developer] ---
+ * tm_employee_count: number|Mitarbeiteranzahl|50|Anzahl der Mitarbeiter
+ * tm_founded_year: number|Gründungsjahr|2000|Jahr der Firmengründung
  */
 
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
 ?>
 <!DOCTYPE html>
 <html lang="<?= rex_clang::getCurrent()->getCode() ?>">
@@ -375,7 +388,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 <!-- Header mit Navigation -->
 <header>
     <div class="container">
-        <?php 
+        <?php
         $logoMedia = TemplateManager::get('tm_logo');
         $startArticleId = TemplateManager::get('tm_start_article') ?: rex_article::getSiteStartArticleId();
         ?>
@@ -386,7 +399,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
             </a>
         <?php else: ?>
             <h1><a href="<?= rex_getUrl($startArticleId) ?>" style="color: inherit; text-decoration: none;"><?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?></a></h1>
-        <?php endif; ?>
+        <?php endif ?>
         
         <?php if (TemplateManager::get('tm_show_contact_info')): ?>
         <div style="text-align: right; font-size: 0.9rem;">
@@ -396,16 +409,16 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
                         <?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>
                     </a>
                 </div>
-            <?php endif; ?>
+            <?php endif ?>
             <?php if (TemplateManager::get('tm_contact_email')): ?>
                 <div>
                     <strong>E-Mail:</strong> <a href="mailto:<?= rex_escape(TemplateManager::get('tm_contact_email')) ?>" style="color: var(--primary-color); text-decoration: none;">
                         <?= rex_escape(TemplateManager::get('tm_contact_email')) ?>
                     </a>
                 </div>
-            <?php endif; ?>
+            <?php endif ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
         
         <nav aria-label="Hauptnavigation">
             <?php
@@ -417,12 +430,12 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 </header>
 
 <!-- Breadcrumbs -->
-<?php 
+<?php
 $showBreadcrumbs = TemplateManager::get('tm_show_breadcrumbs');
 $currentArticle = rex_article::getCurrent();
 $isStartArticle = $currentArticle && $currentArticle->isStartArticle();
 
-if ($showBreadcrumbs && !$isStartArticle): 
+if ($showBreadcrumbs && !$isStartArticle):
 ?>
 <div class="breadcrumb" aria-label="Breadcrumb">
     <div class="container">
@@ -432,13 +445,13 @@ if ($showBreadcrumbs && !$isStartArticle):
             // Breadcrumb-Pfad
             $trail = [];
             $article = rex_article::getCurrent();
-            
+
             // Alle Eltern-Artikel sammeln
             while ($article && $article->getId() !== rex_article::getSiteStartArticleId()) {
                 array_unshift($trail, $article);
                 $article = $article->getParent();
             }
-            
+
             // Ausgabe
             foreach ($trail as $item) {
                 if ($item->getId() === rex_article::getCurrentId()) {
@@ -451,16 +464,16 @@ if ($showBreadcrumbs && !$isStartArticle):
         </ol>
     </div>
 </div>
-<?php endif; ?>
+<?php endif ?>
 
 <!-- Main Content with Sidebar Layout -->
-<?php 
+<?php
 // Öffnungszeiten für Sidebar vorbereiten
 use FriendsOfRedaxo\TemplateManager\OpeningHoursHelper;
 
 $openingHoursHelper = new OpeningHoursHelper(
     TemplateManager::get('tm_opening_hours'),
-    rex_clang::getCurrent()->getCode()
+    rex_clang::getCurrent()->getCode(),
 );
 $hasSidebar = $openingHoursHelper->hasData();
 ?>
@@ -469,32 +482,32 @@ $hasSidebar = $openingHoursHelper->hasData();
 
 <main id="content">
     <article>
-        <?php 
+        <?php
         $articleContent = $this->getArticle();
-        $hasContent = trim(strip_tags($articleContent)) !== '';
-        
+        $hasContent = '' !== trim(strip_tags($articleContent));
+
         // Header-Slideshow anzeigen
         $headerImages = TemplateManager::get('tm_header_images');
-        
-        if ($headerImages && trim($headerImages) !== ''): 
+
+        if ($headerImages && '' !== trim($headerImages)):
         ?>
         <div style="margin: -2rem -1rem 2rem; position: relative; background: var(--gray-100); padding: 3rem 1rem;">
             <?php
             $images = array_filter(array_map('trim', explode(',', $headerImages)));
-            
-            if (count($images) === 1):
+
+            if (1 === count($images)):
                 // Einzelnes Bild
                 ?>
                 <img src="<?= rex_url::media($images[0]) ?>" alt="Header" style="max-width: 100%; height: auto; border-radius: var(--border-radius);">
-            <?php elseif (count($images) > 1): 
+            <?php elseif (count($images) > 1):
                 // Mehrere Bilder als Grid
                 ?>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
                     <?php foreach ($images as $image): ?>
                         <img src="<?= rex_url::media($image) ?>" alt="Header Bild" style="width: 100%; height: 250px; object-fit: cover; border-radius: var(--border-radius);">
-                    <?php endforeach; ?>
+                    <?php endforeach ?>
                 </div>
-            <?php endif; ?>
+            <?php endif ?>
             
             <?php if (TemplateManager::get('tm_slogan')): ?>
             <div style="text-align: center; margin-top: 1.5rem;">
@@ -502,9 +515,9 @@ $hasSidebar = $openingHoursHelper->hasData();
                     <?= nl2br(rex_escape(TemplateManager::get('tm_slogan'))) ?>
                 </p>
             </div>
-            <?php endif; ?>
+            <?php endif ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
         
         <?php if ($hasContent): ?>
             <?= $articleContent ?>
@@ -532,60 +545,60 @@ $hasSidebar = $openingHoursHelper->hasData();
                     <p><strong>Firmenname:</strong> <?= rex_escape(TemplateManager::get('tm_company_name', 'Nicht konfiguriert')) ?></p>
                     <?php if (TemplateManager::get('tm_slogan')): ?>
                     <p><strong>Slogan:</strong> <?= rex_escape(TemplateManager::get('tm_slogan')) ?></p>
-                    <?php endif; ?>
+                    <?php endif ?>
                     <p><strong>Primärfarbe:</strong> <span class="color-swatch" style="background:<?= TemplateManager::get('tm_primary_color', '#005d40') ?>"></span> <?= TemplateManager::get('tm_primary_color', '#005d40') ?></p>
                     <?php if (TemplateManager::get('tm_employee_count')): ?>
-                    <p><strong>Mitarbeiter:</strong> <?= (int)TemplateManager::get('tm_employee_count') ?></p>
-                    <?php endif; ?>
+                    <p><strong>Mitarbeiter:</strong> <?= (int) TemplateManager::get('tm_employee_count') ?></p>
+                    <?php endif ?>
                     <?php if (TemplateManager::get('tm_founded_year')): ?>
-                    <p><strong>Gegründet:</strong> <?= (int)TemplateManager::get('tm_founded_year') ?></p>
-                    <?php endif; ?>
-                    <?php 
+                    <p><strong>Gegründet:</strong> <?= (int) TemplateManager::get('tm_founded_year') ?></p>
+                    <?php endif ?>
+                    <?php
                     $openingHoursJson = TemplateManager::get('tm_opening_hours');
-                    if ($openingHoursJson): 
+                    if ($openingHoursJson):
                         $openingHours = json_decode($openingHoursJson, true);
                         if ($openingHours && isset($openingHours['regular'])):
                             $weekdays = [
-                                'monday' => 'Mo', 'tuesday' => 'Di', 'wednesday' => 'Mi', 
-                                'thursday' => 'Do', 'friday' => 'Fr', 'saturday' => 'Sa', 'sunday' => 'So'
+                                'monday' => 'Mo', 'tuesday' => 'Di', 'wednesday' => 'Mi',
+                                'thursday' => 'Do', 'friday' => 'Fr', 'saturday' => 'Sa', 'sunday' => 'So',
                             ];
                     ?>
                     <p><strong>Öffnungszeiten:</strong></p>
                     <ul style="margin: 0.5rem 0; list-style: none; padding: 0;">
-                    <?php foreach ($openingHours['regular'] as $day => $data): 
+                    <?php foreach ($openingHours['regular'] as $day => $data):
                         $label = $weekdays[$day] ?? $day;
                         $status = $data['status'] ?? 'closed';
                     ?>
                         <li style="display: flex; gap: 0.5rem;">
                             <span style="width: 30px; font-weight: 600;"><?= $label ?>:</span>
-                            <?php if ($status === 'closed'): ?>
+                            <?php if ('closed' === $status): ?>
                                 <span style="color: var(--gray-400, #999);">Geschlossen</span>
-                            <?php elseif ($status === '24h'): ?>
+                            <?php elseif ('24h' === $status): ?>
                                 <span style="color: var(--primary-color);">24h geöffnet</span>
-                            <?php else: 
-                                $times = array_map(fn($t) => $t['open'] . '–' . $t['close'], $data['times'] ?? []);
+                            <?php else:
+                                $times = array_map(static fn ($t) => $t['open'] . '–' . $t['close'], $data['times'] ?? []);
                             ?>
                                 <span><?= implode(', ', $times) ?> Uhr</span>
-                            <?php endif; ?>
+                            <?php endif ?>
                         </li>
-                    <?php endforeach; ?>
+                    <?php endforeach ?>
                     </ul>
-                    <?php 
+                    <?php
                         endif;
-                    endif; 
+                    endif;
                     ?>
-                    <?php 
+                    <?php
                     $mainCategory = TemplateManager::get('tm_main_category');
                     if ($mainCategory && is_numeric($mainCategory)):
-                        $category = rex_category::get((int)$mainCategory);
+                        $category = rex_category::get((int) $mainCategory);
                         if ($category):
                     ?>
                     <p><strong>Hauptkategorie:</strong> <a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></p>
-                    <?php 
+                    <?php
                         endif;
-                    endif; 
+                    endif;
                     ?>
-                    <?php 
+                    <?php
                     $serviceCategories = TemplateManager::get('tm_service_categories');
                     if ($serviceCategories):
                         $categoryIds = array_filter(array_map('intval', explode(',', $serviceCategories)));
@@ -598,13 +611,13 @@ $hasSidebar = $openingHoursHelper->hasData();
                         if ($category):
                     ?>
                         <li><a href="<?= $category->getUrl() ?>"><?= rex_escape($category->getName()) ?></a></li>
-                    <?php 
+                    <?php
                         endif;
-                    endforeach; ?>
+                    endforeach ?>
                     </ul>
-                    <?php 
+                    <?php
                         endif;
-                    endif; 
+                    endif;
                     ?>
                 </div>
                 
@@ -620,11 +633,11 @@ $hasSidebar = $openingHoursHelper->hasData();
                     Sobald Sie eigenen Content hinzufügen, wird dieser Demo-Text automatisch ersetzt.
                 </p>
             </div>
-        <?php endif; ?>
+        <?php endif ?>
     </article>
 </main>
 
-<?php if ($hasSidebar): 
+<?php if ($hasSidebar):
     $groupedHours = $openingHoursHelper->getRegularGrouped();
     $specialHours = $openingHoursHelper->getSpecial(10, true); // Max 10 Sonderzeiten anzeigen
     $currentStatus = $openingHoursHelper->getCurrentStatus();
@@ -658,10 +671,10 @@ $hasSidebar = $openingHoursHelper->hasData();
                         <?= rex_escape($group['status_label']) ?>
                     <?php else: ?>
                         <?= rex_escape($group['times_formatted']) ?>
-                    <?php endif; ?>
+                    <?php endif ?>
                 </span>
             </div>
-            <?php endforeach; ?>
+            <?php endforeach ?>
         </div>
         
         <?php if (!empty($specialHours)): ?>
@@ -676,28 +689,28 @@ $hasSidebar = $openingHoursHelper->hasData();
                     <?= rex_escape($special['display_name']) ?>
                     <?php if (!empty($special['date_formatted'])): ?>
                     <small style="color: var(--gray-400);">(<?= rex_escape($special['date_formatted']) ?>)</small>
-                    <?php endif; ?>
+                    <?php endif ?>
                 </span>
                 <span style="white-space: nowrap; <?= $special['is_closed'] ? 'color: var(--gray-400); font-style: italic;' : '' ?>">
                     <?= rex_escape($special['formatted']) ?>
                 </span>
             </div>
-            <?php endforeach; ?>
+            <?php endforeach ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
         
         <?php if ($openingHoursHelper->hasNote()): ?>
         <div style="margin-top: 0.75rem; padding: 0.5rem; background: var(--gray-100); border-radius: 3px; font-size: 0.8rem; color: var(--text-color); font-style: italic;">
             <i class="fa-solid fa-info-circle" style="color: var(--primary-color); margin-right: 0.3rem;"></i>
             <?= rex_escape($openingHoursHelper->getNote()) ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
         
         <?php if ($currentStatus['next_change_label']): ?>
         <div style="margin-top: 0.5rem; padding: 0.3rem; background: var(--gray-100); border-radius: 3px; text-align: center; font-size: 0.7rem; color: var(--gray-400);">
             → <?= rex_escape($currentStatus['next_change_label']) ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
     </div>
     
     <!-- Kontakt-Schnellinfo in Sidebar -->
@@ -713,18 +726,18 @@ $hasSidebar = $openingHoursHelper->hasData();
             <i class="fa-solid fa-phone" style="color: var(--primary-color);"></i>
             <?= rex_escape(TemplateManager::get('tm_phone')) ?>
         </a>
-        <?php endif; ?>
+        <?php endif ?>
         <?php if (TemplateManager::get('tm_email')): ?>
         <a href="mailto:<?= rex_escape(TemplateManager::get('tm_email')) ?>" 
            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-color); text-decoration: none; font-size: 0.85rem;">
             <i class="fa-solid fa-envelope" style="color: var(--primary-color);"></i>
             <?= rex_escape(TemplateManager::get('tm_email')) ?>
         </a>
-        <?php endif; ?>
+        <?php endif ?>
     </div>
-    <?php endif; ?>
+    <?php endif ?>
 </aside>
-<?php endif; ?>
+<?php endif ?>
 
 </div><!-- /.main-layout -->
 
@@ -732,20 +745,22 @@ $hasSidebar = $openingHoursHelper->hasData();
 <footer>
     <div class="container">
         
-        <?php 
+        <?php
         // Social Links ausgeben
         $socialLinksJson = TemplateManager::get('tm_social_links');
         $socialLinks = $socialLinksJson ? json_decode($socialLinksJson, true) : [];
-        
-        if (!empty($socialLinks)): 
+
+        if (!empty($socialLinks)):
         ?>
         <div class="social-links" style="margin-bottom: 1.5rem; text-align: center;">
-            <?php foreach ($socialLinks as $link): 
-                if (empty($link['url'])) continue;
+            <?php foreach ($socialLinks as $link):
+                if (empty($link['url'])) {
+                continue;
+                }
                 $icon = $link['icon'] ?? '';
                 $url = $link['url'];
                 $label = $link['label'] ?? '';
-                
+
                 // Icon-Klasse ermitteln
                 $iconHtml = '';
                 if (str_starts_with($icon, 'uk-icon-')) {
@@ -774,14 +789,14 @@ $hasSidebar = $openingHoursHelper->hasData();
                onmouseout="this.style.background='var(--gray-200)'; this.style.color='var(--text-color)'; this.style.transform='translateY(0)';">
                 <?= $iconHtml ?>
             </a>
-            <?php endforeach; ?>
+            <?php endforeach ?>
         </div>
-        <?php endif; ?>
+        <?php endif ?>
         
-        <?php 
+        <?php
         $footerLinks = TemplateManager::get('tm_footer_links');
-        
-        if ($footerLinks && trim($footerLinks) !== ''): 
+
+        if ($footerLinks && '' !== trim($footerLinks)):
         ?>
         <nav class="footer-nav" aria-label="Footer-Navigation">
             <ul>
@@ -792,7 +807,7 @@ $hasSidebar = $openingHoursHelper->hasData();
                     if ($articleId > 0) {
                         $article = rex_article::get($articleId);
                         if ($article) {
-                            echo '<li><a href="' . $article->getUrl() . '">' . 
+                            echo '<li><a href="' . $article->getUrl() . '">' .
                                  rex_escape($article->getName()) . '</a></li>';
                         }
                     }
@@ -800,14 +815,14 @@ $hasSidebar = $openingHoursHelper->hasData();
                 ?>
             </ul>
         </nav>
-        <?php endif; ?>
+        <?php endif ?>
         
         <div class="footer-bottom">
             <div>
                 &copy; <?= date('Y') ?> <?= rex_escape(TemplateManager::get('tm_company_name', 'Muster GmbH')) ?>
                 <?php if (TemplateManager::get('tm_founded_year')): ?>
-                    | Seit <?= (int)TemplateManager::get('tm_founded_year') ?>
-                <?php endif; ?>
+                    | Seit <?= (int) TemplateManager::get('tm_founded_year') ?>
+                <?php endif ?>
                 . Alle Rechte vorbehalten.
             </div>
             
@@ -816,17 +831,17 @@ $hasSidebar = $openingHoursHelper->hasData();
                 <a href="mailto:<?= rex_escape(TemplateManager::get('tm_contact_email')) ?>" class="email">
                     <?= rex_escape(TemplateManager::get('tm_contact_email')) ?>
                 </a>
-                <?php endif; ?>
+                <?php endif ?>
                 
                 <?php if (TemplateManager::get('tm_contact_phone') && TemplateManager::get('tm_contact_email')): ?>
                 <span style="margin: 0 0.5rem;">|</span>
-                <?php endif; ?>
+                <?php endif ?>
                 
                 <?php if (TemplateManager::get('tm_contact_phone')): ?>
                 <a href="tel:<?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>" style="color: var(--primary-color); text-decoration: none;">
                     <?= rex_escape(TemplateManager::get('tm_contact_phone')) ?>
                 </a>
-                <?php endif; ?>
+                <?php endif ?>
             </div>
         </div>
     </div>

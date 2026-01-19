@@ -156,11 +156,13 @@ class TemplateManager
         // Sicherstellen dass Domain-ID ein int ist
         $domainId = (int) $domainId;
         // Template-Settings aus DocBlock parsen
-        $templateSettings = TemplateParser::getTemplateSettings($templateId);
+        $parsed = TemplateParser::getTemplateSettings($templateId);
         
-        if (empty($templateSettings)) {
+        if (empty($parsed) || empty($parsed['settings'])) {
             return [];
         }
+        
+        $templateSettings = $parsed['settings'];
         
         // Gespeicherte Werte aus DB laden
         $savedValues = $this->loadSavedSettings($templateId, $domainId, $clangId);

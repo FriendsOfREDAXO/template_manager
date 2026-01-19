@@ -1,8 +1,8 @@
 <?php
 
-use FriendsOfRedaxo\TemplateManager\TemplateParser;
-use FriendsOfRedaxo\TemplateManager\TemplateManager;
 use FriendsOfRedaxo\TemplateManager\FieldRendererManager;
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+use FriendsOfRedaxo\TemplateManager\TemplateParser;
 
 $addon = rex_addon::get('template_manager');
 
@@ -18,14 +18,18 @@ $templates = $parser->getAllTemplates();
 
 // Alle YRewrite Domains holen und sortieren (Default-Domain ans Ende)
 $domains = rex_yrewrite::getDomains();
-usort($domains, function($a, $b) {
+usort($domains, static function ($a, $b) {
     $aId = $a->getId();
     $bId = $b->getId();
-    
+
     // Domains ohne ID (leer oder 0) ans Ende
-    if (empty($aId) && !empty($bId)) return 1;
-    if (!empty($aId) && empty($bId)) return -1;
-    
+    if (empty($aId) && !empty($bId)) {
+        return 1;
+    }
+    if (!empty($aId) && empty($bId)) {
+        return -1;
+    }
+
     // Ansonsten alphabetisch nach Namen
     return strcmp($a->getName(), $b->getName());
 });
@@ -49,16 +53,16 @@ if (rex_post('save', 'bool')) {
     $templateId = rex_post('template_id', 'int');
     $domainId = rex_post('domain_id', 'int');
     $allSettings = rex_post('settings', 'array', []);
-    
+
     $manager = new TemplateManager();
-    
+
     // Für jede Sprache speichern
     foreach ($allSettings as $clangId => $settings) {
         if (!empty($settings)) {
-            $manager->saveSettings($templateId, $domainId, (int)$clangId, $settings);
+            $manager->saveSettings($templateId, $domainId, (int) $clangId, $settings);
         }
     }
-    
+
     echo rex_view::success($addon->i18n('template_manager_saved'));
 }
 
@@ -117,7 +121,7 @@ if (!$templateData) {
     $content .= '<p>' . $addon->i18n('template_manager_no_settings') . '</p>';
     $content .= '</div>';
     $content .= '</div>';
-    
+
     $fragment = new rex_fragment();
     $fragment->setVar('title', $addon->i18n('template_manager_settings'), false);
     $fragment->setVar('body', $content, false);
@@ -143,7 +147,7 @@ foreach ($domains as $domain) {
 foreach ($clangs as $clang) {
     $active = $clang->getId() === rex_clang::getStartId() ? 'active in' : '';
     $panel .= '<div role="tabpanel" class="tab-pane fade ' . $active . '" id="lang-' . $clang->getId() . '">';
-    
+
     // Nur Sprach-Info im Tab anzeigen (Domain + Template sind bereits oben sichtbar)
     $panel .= '<div class="alert alert-info" style="margin-top: 1rem;">';
     $panel .= '<strong><i class="rex-icon fa-language"></i> ' . $addon->i18n('template_manager_config_language_label') . '</strong> ';
@@ -152,17 +156,94 @@ foreach ($clangs as $clang) {
         $panel .= ' <span class="label label-info">Fallback</span>';
     }
     $panel .= '</div>';
-    
+
     // Gespeicherte Werte laden
     $manager = new TemplateManager();
     $savedValues = $manager->getTemplateConfigForDomain($selectedTemplateId, $selectedDomainId, $clang->getId());
-    
-    // Settings-Formular generieren
-    foreach ($templateData['settings'] as $setting) {
-        // Field Renderer Manager verwendet
-        $panel .= FieldRendererManager::renderField($setting, $savedValues[$setting['key']] ?? $setting['default'], $clang->getId());
+
+    // User-Rolle für Rechteprüfung
+    $user = rex::getUser();
+    $isAdmin = $user && $user->isAdmin();
+
+    // Gruppen-basierte Darstellung mit Akkordeons
+    if (!empty($templateData['groups'])) {
+        $panel .= '<div class="panel-group" id="accordion-lang-' . $clang->getId() . '">';
+
+        $groupIndex = 0;
+        foreach ($templateData['groups'] as $groupKey => $group) {
+            // Rechte prüfen: Admin sieht alles, andere nur wenn keine Rollen oder eigene Rolle vorhanden
+            $hasAccess = $isAdmin;
+            if (!$isAdmin) {
+                if (empty($group['roles'])) {
+                    // Keine Rollen = für alle sichtbar
+                    $hasAccess = true;
+                } else {
+                    // Prüfen ob User eine der benötigten Rollen hat
+                    foreach ($group['roles'] as $role) {
+                        if ($user && $user->hasPerm($role)) {
+                            $hasAccess = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!$hasAccess) {
+                continue; // Gruppe überspringen wenn keine Rechte
+            }
+
+            $collapseId = 'collapse-' . $clang->getId() . '-' . $groupIndex;
+            $isFirstGroup = 0 === $groupIndex;
+
+            $panel .= '<div class="panel panel-default">';
+            $panel .= '<div class="panel-heading" role="tab">';
+            $panel .= '<h4 class="panel-title">';
+            $panel .= '<a role="button" data-toggle="collapse" data-parent="#accordion-lang-' . $clang->getId() . '" ';
+            $panel .= 'href="#' . $collapseId . '" aria-expanded="' . ($isFirstGroup ? 'true' : 'false') . '">';
+            $panel .= '<i class="rex-icon fa-chevron-down"></i> ';
+
+            // Optional: Font Awesome Icon vor dem Gruppennamen anzeigen
+            if (!empty($group['icon'])) {
+                $panel .= '<i class="' . rex_escape($group['icon']) . '"></i> ';
+            }
+
+            $panel .= rex_escape($group['name']);
+
+            // Rollen-Badge anzeigen (nur für Non-Admins zur Info)
+            if (!empty($group['roles']) && !$isAdmin) {
+                $panel .= ' <small class="label label-info">' . implode(', ', array_map('rex_escape', $group['roles'])) . '</small>';
+            }
+
+            $panel .= '</a>';
+            $panel .= '</h4>';
+            $panel .= '</div>';
+
+            $panel .= '<div id="' . $collapseId . '" class="panel-collapse collapse' . ($isFirstGroup ? ' in' : '') . '">';
+            $panel .= '<div class="panel-body">';
+
+            // Felder dieser Gruppe rendern
+            foreach ($group['fields'] as $fieldKey) {
+                if (isset($templateData['settings'][$fieldKey])) {
+                    $setting = $templateData['settings'][$fieldKey];
+                    $panel .= FieldRendererManager::renderField($setting, $savedValues[$setting['key']] ?? $setting['default'], $clang->getId());
+                }
+            }
+
+            $panel .= '</div>'; // panel-body
+            $panel .= '</div>'; // collapse
+            $panel .= '</div>'; // panel
+
+            ++$groupIndex;
+        }
+
+        $panel .= '</div>'; // panel-group
+    } else {
+        // Keine Gruppen: Alte Darstellung ohne Akkordeons
+        foreach ($templateData['settings'] as $setting) {
+            $panel .= FieldRendererManager::renderField($setting, $savedValues[$setting['key']] ?? $setting['default'], $clang->getId());
+        }
     }
-    
+
     $panel .= '</div>'; // tab-pane
 }
 
