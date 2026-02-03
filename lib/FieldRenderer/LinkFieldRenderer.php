@@ -116,14 +116,18 @@ class LinkFieldRenderer extends AbstractFieldRenderer
                     const clang = btn.dataset.clang || 1;
                     const input = document.getElementById('REX_LINK_' + widgetId);
                     
+                    // Wenn leer: Zur Struktur springen um neue Seite anzulegen
                     if (!input || !input.value || input.value === '') {
-                        alert('Kein Artikel ausgewählt');
+                        const url = 'index.php?page=structure&clang=' + clang;
+                        window.open(url, '_blank');
                         return;
                     }
                     
                     const articleId = parseInt(input.value, 10);
                     if (isNaN(articleId) || articleId < 1) {
-                        alert('Kein gültiger Artikel ausgewählt');
+                        // Fallback zur Struktur wenn ungültige ID
+                        const url = 'index.php?page=structure&clang=' + clang;
+                        window.open(url, '_blank');
                         return;
                     }
                     
