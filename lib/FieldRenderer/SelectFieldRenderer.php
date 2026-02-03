@@ -41,7 +41,7 @@ class SelectFieldRenderer extends AbstractFieldRenderer
         $html = '<select class="form-control selectpicker" name="' . $name . '">';
         
         foreach ($setting['options'] as $optValue => $optLabel) {
-            $selected = $optValue === $value ? 'selected' : '';
+            $selected = (string)$optValue == (string)$value ? 'selected' : '';
             $html .= '<option value="' . \rex_escape($optValue) . '" ' . $selected . '>';
             $html .= \rex_escape($optLabel);
             $html .= '</option>';
@@ -70,7 +70,7 @@ class SelectFieldRenderer extends AbstractFieldRenderer
         $html = '<select class="form-control selectpicker" name="' . $name . '" data-size="10">';
         
         foreach ($setting['options'] as $colorValue => $colorLabel) {
-            $selected = $colorValue === $value ? 'selected' : '';
+            $selected = (string)$colorValue == (string)$value ? 'selected' : '';
             
             // Validiere Farbwert (Hex, RGB, RGBA oder CSS Color Names)
             $escapedColor = \rex_escape($colorValue);
