@@ -7,6 +7,7 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 📝 **DocBlock-basierte Konfiguration** - Template-Settings direkt im Template-Code definieren
 - 🌍 **Multi-Domain Support** - Unterschiedliche Einstellungen pro YRewrite-Domain
 - 🌐 **Mehrsprachigkeit** - Separate Einstellungen für jede Sprache mit Fallback
+- 🔗 **Globale Variablen** - Template- und Domain-übergreifende Werte zentral verwalten
 - 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist u.v.m.
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
 - 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges
@@ -799,8 +800,78 @@ $helper->setTranslations('fr', [
 - Restaurant-Öffnungszeiten mit Mittagspause
 - Service-Hotline Erreichbarkeit
 
-## Frontend-Nutzung
+## Globale Variablen
 
+Globale Variablen gelten **template- und domainübergreifend** für alle YRewrite-Domains. Sie werden zentral verwaltet und dienen als Fallback-Werte für Template-spezifische Einstellungen.
+
+### Konzept & Priorität
+
+```
+Globale Variable  →  Fallback (niedrigste Priorität)
+Template-Setting  →  Überschreibt globale Variable (höhere Priorität)
+```
+
+Wenn für einen Key sowohl ein globaler Wert als auch ein Template-spezifischer Wert existiert, **gewinnt immer der Template-spezifische Wert**. Globale Variablen greifen nur, wenn kein Template-Wert gesetzt ist.
+
+### Verwaltung im Backend
+
+**Template Manager** → **Globale Variablen**
+
+Hier können globale Variablen angelegt, bearbeitet und gelöscht werden. Die Werte werden **pro Sprache** gespeichert, genau wie Template-Einstellungen.
+
+- **Key** muss mit `tm_` beginnen (z.B. `tm_company_name`, `tm_support_email`)
+- **Wert** pro Sprache angeben
+- **Bearbeiten** / **Löschen** über die Tabelle der vorhandenen Variablen
+
+### Frontend-Zugriff
+
+Globale Variablen sind **transparent über `TemplateManager::get()`** erreichbar – keine gesonderte API nötig:
+
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Funktioniert wie gewohnt – globale Variablen werden automatisch als Fallback verwendet
+$companyName = TemplateManager::get('tm_company_name');
+$supportEmail = TemplateManager::get('tm_support_email');
+?>
+```
+
+### Direktzugriff über GlobalVariables
+
+Für direkten Zugriff auf globale Variablen (ohne Template-Fallback-Logik) steht die `GlobalVariables`-Klasse zur Verfügung:
+
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\GlobalVariables;
+
+// Einzelnen Wert holen
+$email = GlobalVariables::get('tm_support_email');
+$email = GlobalVariables::get('tm_support_email', 'fallback@beispiel.de');
+$email = GlobalVariables::get('tm_support_email', null, 2); // Sprach-ID 2
+
+// Alle globalen Variablen der aktuellen Sprache
+$allGlobals = GlobalVariables::getAll();
+
+// Alle Keys auflisten
+$keys = GlobalVariables::getAllKeys();
+
+// Speichern (Insert oder Update)
+GlobalVariables::save('tm_support_email', 'support@beispiel.de', rex_clang::getCurrentId());
+
+// Löschen (alle Sprachen)
+GlobalVariables::delete('tm_support_email');
+
+// Löschen (nur eine Sprache)
+GlobalVariables::delete('tm_support_email', 1);
+?>
+```
+
+### Typische Anwendungsfälle
+
+- **Unternehmensweite Kontaktdaten** (Support-E-Mail, Hotline) die auf allen Domains und Templates gleich sind
+- **Datenschutz-Texte oder Rechtliche Hinweise** die zentral gepflegt werden
+- **Globale Tracking-IDs** (z.B. Google Analytics, Matomo) die über alle Templates gelten
 
 ## Frontend-Nutzung
 
@@ -916,6 +987,13 @@ $allSettings = TemplateManager::getAll();
 4. Einstellungen in den Sprach-Tabs eingeben
 5. **Speichern** klicken (speichert alle Sprachen gleichzeitig)
 
+### Globale Variablen verwalten
+
+1. **Template Manager** → **Globale Variablen** öffnen
+2. Key eingeben (muss mit `tm_` beginnen) und Wert pro Sprache eintragen
+3. **Speichern** klicken
+4. Vorhandene Variablen bearbeiten oder löschen über die Liste
+
 ### Mehrsprachigkeit
 
 - Jede Sprache hat einen eigenen Tab
@@ -960,6 +1038,19 @@ Das Addon erstellt die Tabelle `rex_template_settings`:
 | updated_date | datetime | Änderungsdatum |
 
 **UNIQUE KEY:** (template_id, domain_id, clang_id, setting_key)
+
+Und die Tabelle `rex_template_manager_globals` für globale Variablen:
+
+| Spalte | Typ | Beschreibung |
+|--------|-----|--------------|
+| id | int | Primary Key |
+| setting_key | varchar(255) | Variablenname (mit tm_ Prefix) |
+| setting_value | text | Gespeicherter Wert |
+| clang_id | int | Sprach-ID |
+| created_date | datetime | Erstellungsdatum |
+| updated_date | datetime | Änderungsdatum |
+
+**UNIQUE KEY:** (setting_key, clang_id)
 
 ## Best Practices
 
@@ -1049,6 +1140,7 @@ use FriendsOfRedaxo\TemplateManager\TemplateManager;
 ```php
 use FriendsOfRedaxo\TemplateManager\TemplateParser;
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
+use FriendsOfRedaxo\TemplateManager\GlobalVariables;
 ```
 
 ### Parser-Regex
@@ -1098,6 +1190,12 @@ TemplateManager::getAll(
 MIT License
 
 ## Changelog
+
+### Version 1.5.0
+- 🔗 **Globale Variablen**: Neue template- und domainübergreifende Variablen, zentral verwaltbar unter **Template Manager → Globale Variablen**
+- 🗄️ **Neue DB-Tabelle**: `rex_template_manager_globals` für sprachspezifische globale Werte
+- 🔌 **Neue Klasse**: `GlobalVariables` mit `get()`, `getAll()`, `save()`, `delete()`, `getAllKeys()`
+- 🔄 **Fallback-Logik**: Globale Variablen werden automatisch als Fallback in `TemplateManager::get()` verwendet; Template-spezifische Werte haben immer Vorrang
 
 ### Version 1.2.0 (19.11.2025)
 - ✨ **Neuer Feldtyp**: `external_linklist` für externe Link-Listen mit Live-Vorschau
