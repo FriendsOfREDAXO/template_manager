@@ -145,12 +145,23 @@ $content .= '</div>'; // row
 
 if ($showCopyBtn) {
     $copyPageUrl = rex_url::backendPage('template_manager/config', ['template_id' => $selectedTemplateId, 'domain_id' => $selectedDomainId]);
-    $content .= '<div style="border-top:1px solid rgba(0,0,0,.1); margin-top:8px; padding-top:8px; text-align:right;">';
+}
+
+$content .= '</div>'; // alert
+
+if ($showCopyBtn) {
+    $content .= '<div style="margin-top:8px; text-align:right;">';
     $content .= '<button type="button" data-toggle="collapse" data-target="#tm-copy-panel" class="btn btn-primary">';
     $content .= '<i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_settings_btn');
     $content .= '</button>';
     $content .= '</div>';
-    $content .= '<div class="collapse" id="tm-copy-panel" style="margin-top:12px;">';
+}
+
+if ($showCopyBtn) {
+    $content .= '<div class="collapse" id="tm-copy-panel">';
+    $content .= '<div class="panel panel-default" style="margin-top:8px;">';
+    $content .= '<div class="panel-heading"><strong><i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_settings_btn') . '</strong></div>';
+    $content .= '<div class="panel-body">';
     $content .= '<form method="post" action="' . rex_escape($copyPageUrl) . '">';
     $content .= '<input type="hidden" name="copy_settings" value="1">';
     $content .= '<input type="hidden" name="template_id" value="' . $selectedTemplateId . '">';
@@ -173,10 +184,10 @@ if ($showCopyBtn) {
     $content .= '</label></div>';
     $content .= '<button type="submit" class="btn btn-primary"><i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_execute') . '</button>';
     $content .= '</form>';
-    $content .= '</div>';
+    $content .= '</div>'; // panel-body
+    $content .= '</div>'; // panel
+    $content .= '</div>'; // collapse
 }
-
-$content .= '</div>'; // alert
 
 $content .= '<script nonce="' . rex_response::getNonce() . '">
 jQuery(function($) {
