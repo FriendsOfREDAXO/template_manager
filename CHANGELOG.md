@@ -2,6 +2,35 @@
 
 Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentiert.
 
+## [1.5.0] - 2026-03-01
+
+### Added
+- ✨ **Neuer Feldtyp `notice`** - Hinweis-, Info-, Warn- und Danger-Boxen direkt im Einstellungsformular (kein Datenbankfeld)
+  - Typen: `info` (blau), `success` (grün), `warning` (orange), `danger` (rot)
+  - Ideal für Erklärungen, Trennungshilfen und Warnungen zwischen Feldergruppen
+- 🔄 **Domain-Einstellungen kopieren** - Settings eines Templates per Formular von einer Domain auf eine andere übertragen
+  - Als Bootstrap-Collapse direkt im Auswahl-Panel eingebettet (kein Popup, kein JS)
+  - Sprach-Filter: nur ausgewählte Sprachen werden kopiert
+  - Option: vorhandene Werte überschreiben oder nur fehlende ergänzen
+- 🔒 **Rechteverwaltung Copy** - Nur Admins oder User mit `template_manager[copy]` sehen und nutzen die Kopierfunktion
+- 🌑 **Dark Mode für OpeningHours-Widget** - Vollständiger Dark-Mode-Support via CSS Custom Properties (`--oh-*`)
+  - Unterstützt `body.rex-theme-dark` und `@media (prefers-color-scheme: dark)`
+
+### Fixed
+- 🐛 **YRewrite Default-Domain als „Unbekannt" angezeigt** - `getId()` gibt `null` zurück; `(int)`-Cast behebt den strikten Typvergleich
+
+---
+
+## [1.4.0] - 2026-02-01
+
+### Added
+- 🏢 **Globale Variablen** (`GLOBAL_SETTINGS`) - Domainübergreifende Einstellungen mit eigenem Menüpunkt
+- 🔑 **Kaskadierung** - Template-Setting → Globales Setting → Default-Wert
+- 📝 **Akkordeon-Gruppen** - Felder in thematische, aufklappbare Gruppen mit Font-Awesome-Icons organisieren
+- 🔒 **Gruppen-Rechte** - Gruppen pro Benutzerrolle sichtbar/unsichtbar steuern
+
+---
+
 ## [1.3.0] - 2026-01-19
 
 ### Added - OpeningHours Widget (NEU)
