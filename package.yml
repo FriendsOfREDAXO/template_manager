@@ -1,5 +1,5 @@
 package: template_manager
-version: '1.4.0'
+version: '1.5.0'
 author: FriendsOfREDAXO
 supportpage: https://github.com/FriendsOfREDAXO/template_manager
 
@@ -11,6 +11,13 @@ page:
         settings:
             title: 'translate:template_manager_settings'
             icon: rex-icon fa-sliders
+        globals:
+            title: 'translate:template_manager_globals'
+            icon: rex-icon fa-globe
+        global_config:
+            title: 'translate:template_manager_global_config'
+            icon: rex-icon fa-gear
+            perm: admin
         config:
             title: 'translate:template_manager_configure'
             icon: rex-icon fa-edit

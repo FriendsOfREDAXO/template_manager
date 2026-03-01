@@ -90,14 +90,14 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $html .= '<li role="presentation"><a href="#' . $instanceId . '-preview" aria-controls="preview" role="tab" data-toggle="tab"><i class="rex-icon fa-eye"></i> Vorschau</a></li>';
         $html .= '</ul>';
         
-        $html .= '<div class="tab-content" style="padding: 15px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px;">';
+        $html .= '<div class="tab-content oh-tab-content">';
         
         // Tab: Reguläre Zeiten
         $html .= '<div role="tabpanel" class="tab-pane active" id="' . $instanceId . '-regular">';
         $html .= $this->renderRegularHours($data['regular'] ?? []);
         
         // Hinweis-Textfeld
-        $html .= '<div class="opening-hours-note" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">';
+        $html .= '<div class="opening-hours-note" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--oh-border-light);">';
         $html .= '<label style="font-weight: 600; margin-bottom: 5px; display: block;"><i class="rex-icon fa-info-circle"></i> Zusätzlicher Hinweis</label>';
         $html .= '<input type="text" class="form-control opening-hours-note-input" placeholder="z.B. Weitere Termine nach Absprache, Mittagspause von 12-13 Uhr..." value="' . \rex_escape($data['note'] ?? '') . '" style="max-width: 500px;">';
         $html .= '<p class="help-block" style="margin-top: 5px; font-size: 12px;">Optionaler Freitext, der unter den Öffnungszeiten angezeigt wird.</p>';
@@ -218,12 +218,13 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $html = '<div class="opening-hours-regular">';
         
         // Schnellaktionen
-        $html .= '<div class="oh-quick-actions" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">';
+        $html .= '<div class="oh-quick-actions">';
+        $html .= '<div class="oh-quick-actions-inner">';
         $html .= '<span style="margin-right: 10px;"><strong>Schnellaktionen:</strong></span>';
         $html .= '<button type="button" class="btn btn-xs btn-default oh-copy-to-all" title="Montag auf alle Werktage kopieren"><i class="rex-icon fa-copy"></i> Mo → Werktage</button> ';
         $html .= '<button type="button" class="btn btn-xs btn-default oh-set-all-closed" title="Alle Tage als geschlossen markieren"><i class="rex-icon fa-ban"></i> Alle geschlossen</button> ';
         $html .= '<button type="button" class="btn btn-xs btn-default oh-reset-default" title="Auf Standardzeiten zurücksetzen"><i class="rex-icon fa-refresh"></i> Zurücksetzen</button>';
-        $html .= '</div>';
+        $html .= '</div></div>';
         
         // Wochentage
         foreach (self::WEEKDAYS as $day => $label) {
@@ -244,7 +245,8 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $status = $dayData['status'] ?? 'closed';
         $times = $dayData['times'] ?? [];
         
-        $html = '<div class="oh-day-row" data-day="' . $day . '" style="display: flex; align-items: flex-start; padding: 10px; margin-bottom: 5px; background: #fafafa; border-radius: 4px; border-left: 3px solid ' . ($status === 'closed' ? '#d9534f' : ($status === '24h' ? '#5cb85c' : '#5bc0de')) . ';">';
+        $borderColor = $status === 'closed' ? '#d9534f' : ($status === '24h' ? '#5cb85c' : '#5bc0de');
+        $html = '<div class="oh-day-row" data-day="' . $day . '" style="display: flex; align-items: flex-start; padding: 10px; margin-bottom: 5px; border-radius: 4px; border-left: 3px solid ' . $borderColor . ';">';
         
         // Tag-Label
         $html .= '<div class="oh-day-label" style="width: 100px; font-weight: 600; padding-top: 5px;">' . $label . '</div>';
@@ -311,7 +313,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         
         $html = '<div class="oh-time-slot" style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">';
         $html .= '<input type="time" class="form-control input-sm oh-time-open" value="' . \rex_escape($open) . '" style="width: 110px;">';
-        $html .= '<span style="color: #666;">–</span>';
+        $html .= '<span class="oh-time-separator">–</span>';
         $html .= '<input type="time" class="form-control input-sm oh-time-close" value="' . \rex_escape($close) . '" style="width: 110px;">';
         
         if ($showRemove || $index > 0) {
@@ -339,7 +341,8 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $html .= '</div>';
         
         // Schnell-Hinzufügen für Feiertage
-        $html .= '<div class="oh-holiday-presets" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">';
+        $html .= '<div class="oh-holiday-presets">';
+        $html .= '<div class="oh-holiday-presets-inner">';
         $html .= '<label style="display: block; margin-bottom: 8px;"><strong>Feiertag hinzufügen:</strong></label>';
         $html .= '<div style="display: flex; gap: 10px; flex-wrap: wrap;">';
         $html .= '<select class="form-control input-sm oh-holiday-select" style="width: 200px;">';
@@ -354,7 +357,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $html .= '</select>';
         $html .= '<button type="button" class="btn btn-sm btn-primary oh-add-holiday"><i class="rex-icon fa-plus"></i> Hinzufügen</button>';
         $html .= '</div>';
-        $html .= '</div>';
+        $html .= '</div></div>';
         
         // Manuell hinzufügen
         $html .= '<div style="margin-bottom: 15px;">';
@@ -394,7 +397,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         // Datum
         $html .= '<div style="flex: 0 0 140px;">';
         if ($isHoliday) {
-            $html .= '<input type="text" class="form-control input-sm oh-special-date" value="' . \rex_escape($date) . '" readonly style="background: #f5f5f5;">';
+            $html .= '<input type="text" class="form-control input-sm oh-special-date oh-readonly-input" value="' . \rex_escape($date) . '" readonly>';
             $html .= '<small class="text-muted">Beweglich</small>';
         } else {
             $html .= '<input type="date" class="form-control input-sm oh-special-date" value="' . \rex_escape($date) . '">';
@@ -451,24 +454,95 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     {
         return '
 <style>
+/* CSS-Variablen: Light Mode (Standard) */
+.opening-hours-container {
+    --oh-bg: #fafafa;
+    --oh-bg-hover: #f0f0f0;
+    --oh-bg-section: #f5f5f5;
+    --oh-border: #ddd;
+    --oh-border-light: #eee;
+    --oh-text-muted: #666;
+    --oh-today-bg: #f0f7ff;
+    --oh-preview-border: #eee;
+    --oh-readonly-bg: #f5f5f5;
+    --oh-tab-border: #ddd;
+}
+
+/* Dark Mode explizit */
+body.rex-theme-dark .opening-hours-container {
+    --oh-bg: #2a2a2a;
+    --oh-bg-hover: #333;
+    --oh-bg-section: #1e1e1e;
+    --oh-border: #444;
+    --oh-border-light: #3a3a3a;
+    --oh-text-muted: #aaa;
+    --oh-today-bg: #1a2a3a;
+    --oh-preview-border: #3a3a3a;
+    --oh-readonly-bg: #1e1e1e;
+    --oh-tab-border: #444;
+}
+
+/* Auto Dark Mode */
+@media (prefers-color-scheme: dark) {
+    body.rex-has-theme:not(.rex-theme-light) .opening-hours-container {
+        --oh-bg: #2a2a2a;
+        --oh-bg-hover: #333;
+        --oh-bg-section: #1e1e1e;
+        --oh-border: #444;
+        --oh-border-light: #3a3a3a;
+        --oh-text-muted: #aaa;
+        --oh-today-bg: #1a2a3a;
+        --oh-preview-border: #3a3a3a;
+        --oh-readonly-bg: #1e1e1e;
+        --oh-tab-border: #444;
+    }
+}
+
 .opening-hours-container {
     max-width: 100%;
 }
 
 .opening-hours-container .nav-tabs {
     margin-bottom: 0;
+    border-bottom-color: var(--oh-tab-border);
 }
 
 .oh-day-row {
     transition: border-color 0.3s ease, background 0.3s ease;
+    background: var(--oh-bg);
 }
 
 .oh-day-row:hover {
-    background: #f0f0f0 !important;
+    background: var(--oh-bg-hover) !important;
+}
+
+.oh-quick-actions-inner {
+    background: var(--oh-bg-section);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.oh-holiday-presets-inner {
+    background: var(--oh-bg-section);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
 }
 
 .oh-time-slot input[type="time"] {
     font-family: monospace;
+}
+
+.oh-time-separator {
+    color: var(--oh-text-muted);
+}
+
+.oh-tab-content {
+    border: 1px solid var(--oh-border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding: 15px;
 }
 
 .oh-special-entry {
@@ -477,6 +551,10 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
 
 .oh-special-entry:last-child {
     margin-bottom: 0;
+}
+
+.oh-readonly-input {
+    background: var(--oh-readonly-bg) !important;
 }
 
 /* Vorschau-Styles */
@@ -489,7 +567,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
 .oh-preview-table td {
     padding: 8px 12px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--oh-border-light);
 }
 
 .oh-preview-table tr:last-child td {
@@ -506,14 +584,14 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
 }
 
 .oh-preview-table .oh-today {
-    background: #f0f7ff;
+    background: var(--oh-today-bg);
     font-weight: 600;
 }
 
 .oh-preview-special {
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 2px solid #eee;
+    border-top: 2px solid var(--oh-preview-border);
 }
 
 @media (max-width: 768px) {

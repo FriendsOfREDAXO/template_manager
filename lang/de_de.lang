@@ -71,3 +71,32 @@ template_manager_setup_cleanup_success = Cleanup abgeschlossen. {0} verwaiste Ei
 template_manager_config_domain_language_info = Aktuell bearbeitet:
 template_manager_config_domain_label = Domain:
 template_manager_config_language_label = Sprache:
+
+template_manager_globals = Globale Variablen
+template_manager_global_definition_title = Definition globaler Variablen
+template_manager_global_definition = Definitionen (DocBlock)
+template_manager_global_definition_note = Definiere hier deine globalen Variablen im DocBlock Format mit <code>GLOBAL_SETTINGS</code>.
+template_manager_save_definition = Definition speichern
+template_manager_definitions_saved = Definitionen gespeichert
+template_manager_global_values_title = Werte der globalen Variablen
+template_manager_save_values = Werte speichern
+template_manager_values_saved = Werte gespeichert
+template_manager_global_fields = Felder
+
+template_manager_global_config = Definitionen
+template_manager_no_global_settings = Es wurden noch keine globalen Variablen definiert. Die Definition kann im Menüpunkt "Definitionen" (nur für Admins sichtbar) vorgenommen werden.
+
+# Domain-Einstellungen kopieren
+template_manager_copy_settings_title = Einstellungen in andere Domain kopieren
+template_manager_copy_intro = Kopiere die aktuell gewählten Domain-Einstellungen des Templates in eine andere Domain.
+template_manager_copy_settings_btn = Einstellungen kopieren nach …
+template_manager_copy_modal_title = Domain-Einstellungen kopieren
+template_manager_copy_source = Quelle (aktuelle Domain)
+template_manager_copy_target = Ziel-Domain
+template_manager_copy_select_domain = – Bitte wählen –
+template_manager_copy_languages = Sprachen
+template_manager_copy_all_langs = Alle Sprachen
+template_manager_copy_overwrite = Vorhandene Werte in der Ziel-Domain überschreiben
+template_manager_copy_cancel = Abbrechen
+template_manager_copy_execute = Jetzt kopieren
+template_manager_copy_done = Einstellungen kopiert: {0} kopiert, {1} übersprungen, {2} Fehler

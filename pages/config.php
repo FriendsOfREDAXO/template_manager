@@ -48,6 +48,23 @@ if (!empty($domains)) {
 }
 $selectedDomainId = (int) rex_request('domain_id', 'int', $firstDomainId);
 
+$currentUser = rex::getUser();
+$canCopy = $currentUser && ($currentUser->isAdmin() || $currentUser->hasPerm('template_manager[copy]'));
+
+// POST: Domain-Einstellungen kopieren
+if ($canCopy && rex_post('copy_settings', 'bool')) {
+    $manager = new TemplateManager();
+    $stats = $manager->copySettings(
+        rex_post('template_id', 'int'),
+        rex_post('source_domain_id', 'int'),
+        rex_post('target_domain_id', 'int'),
+        rex_post('clang_ids', 'array', []),
+        (bool) rex_post('overwrite', 'int', 1)
+    );
+    $msg = $addon->i18n('template_manager_copy_done', $stats['copied'], $stats['skipped'], $stats['errors']);
+    echo rex_view::success($msg);
+}
+
 // POST: Settings speichern
 if (rex_post('save', 'bool')) {
     $templateId = rex_post('template_id', 'int');
@@ -64,6 +81,34 @@ if (rex_post('save', 'bool')) {
     }
 
     echo rex_view::success($addon->i18n('template_manager_saved'));
+}
+
+// Aktuelle Domain-Info ermitteln (wird für Copy-Button und Panel benötigt)
+$currentDomainName = 'Unbekannt';
+foreach ($domains as $domain) {
+    if ((int) $domain->getId() === $selectedDomainId) {
+        $currentDomainName = $domain->getName();
+        break;
+    }
+}
+
+// Copy-Variablen vorbereiten
+$showCopyBtn = $canCopy && count($domains) > 1;
+$copyTargetOptions = '';
+$copyLangChecks = '';
+if ($showCopyBtn) {
+    foreach ($domains as $domain) {
+        if ((int) $domain->getId() === $selectedDomainId) {
+            continue;
+        }
+        $copyTargetOptions .= '<option value="' . rex_escape($domain->getId()) . '">' . rex_escape($domain->getName()) . '</option>';
+    }
+    foreach ($clangs as $clang) {
+        $copyLangChecks .= '<label class="checkbox-inline">';
+        $copyLangChecks .= '<input type="checkbox" name="clang_ids[]" value="' . $clang->getId() . '" checked> ';
+        $copyLangChecks .= rex_escape($clang->getName());
+        $copyLangChecks .= '</label>';
+    }
 }
 
 // Template & Domain Auswahl
@@ -89,22 +134,55 @@ $content .= '<label style="font-weight: 600; font-size: 14px;"><i class="rex-ico
 $content .= '<select class="form-control selectpicker" data-size="10" id="domain-select" onchange="window.location.href=\'?page=template_manager/config&template_id=' . $selectedTemplateId . '&domain_id=\'+this.value">';
 
 foreach ($domains as $domain) {
-    $selected = $domain->getId() === $selectedDomainId ? 'selected' : '';
+    $selected = (int) $domain->getId() === $selectedDomainId ? 'selected' : '';
     $content .= '<option value="' . $domain->getId() . '" ' . $selected . '>' . rex_escape($domain->getName()) . '</option>';
 }
 
 $content .= '</select>';
-$content .= '</div>';
-$content .= '</div>';
-$content .= '</div>';
+$content .= '</div>'; // form-group
+$content .= '</div>'; // col-md-6
+$content .= '</div>'; // row
 
-$content .= '</div>';
+if ($showCopyBtn) {
+    $copyPageUrl = rex_url::backendPage('template_manager/config', ['template_id' => $selectedTemplateId, 'domain_id' => $selectedDomainId]);
+    $content .= '<div style="border-top:1px solid rgba(0,0,0,.1); margin-top:8px; padding-top:8px; text-align:right;">';
+    $content .= '<a href="#tm-copy-panel" data-toggle="collapse" class="btn btn-default btn-sm">';
+    $content .= '<i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_settings_btn');
+    $content .= '</a>';
+    $content .= '</div>';
+    $content .= '<div class="collapse" id="tm-copy-panel" style="margin-top:12px;">';
+    $content .= '<form method="post" action="' . rex_escape($copyPageUrl) . '">';
+    $content .= '<input type="hidden" name="copy_settings" value="1">';
+    $content .= '<input type="hidden" name="template_id" value="' . $selectedTemplateId . '">';
+    $content .= '<input type="hidden" name="source_domain_id" value="' . $selectedDomainId . '">';
+    $content .= '<div class="row">';
+    $content .= '<div class="col-sm-6"><div class="form-group">';
+    $content .= '<label>' . $addon->i18n('template_manager_copy_source') . '</label>';
+    $content .= '<p class="form-control-static"><i class="rex-icon fa-globe"></i> <strong>' . rex_escape($currentDomainName) . '</strong></p>';
+    $content .= '</div></div>';
+    $content .= '<div class="col-sm-6"><div class="form-group">';
+    $content .= '<label for="tm-copy-target">' . $addon->i18n('template_manager_copy_target') . '</label>';
+    $content .= '<select name="target_domain_id" id="tm-copy-target" class="form-control selectpicker" data-size="10" required>';
+    $content .= '<option value="">' . $addon->i18n('template_manager_copy_select_domain') . '</option>';
+    $content .= $copyTargetOptions;
+    $content .= '</select></div></div>';
+    $content .= '</div>';
+    $content .= '<div class="form-group"><label>' . $addon->i18n('template_manager_copy_languages') . '</label><br>' . $copyLangChecks . '</div>';
+    $content .= '<div class="form-group"><label class="checkbox-inline">';
+    $content .= '<input type="checkbox" name="overwrite" value="1" checked> ' . $addon->i18n('template_manager_copy_overwrite');
+    $content .= '</label></div>';
+    $content .= '<button type="submit" class="btn btn-primary"><i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_execute') . '</button>';
+    $content .= '</form>';
+    $content .= '</div>';
+}
+
+$content .= '</div>'; // alert
 
 $content .= '<script nonce="' . rex_response::getNonce() . '">
 jQuery(function($) {
     $(".selectpicker").selectpicker("refresh");
 });
-</script>';
+</script>';;
 
 // Template Settings laden
 $templateData = null;
@@ -134,15 +212,6 @@ $panel = '';
 
 // Sprach-Tabs Content
 $panel .= '<div class="tab-content">';
-
-// Aktuelle Domain-Info ermitteln
-$currentDomainName = 'Unbekannt';
-foreach ($domains as $domain) {
-    if ($domain->getId() === $selectedDomainId) {
-        $currentDomainName = $domain->getName();
-        break;
-    }
-}
 
 foreach ($clangs as $clang) {
     $active = $clang->getId() === rex_clang::getStartId() ? 'active in' : '';
@@ -298,3 +367,4 @@ $fragment->setVar('body', $content, false);
 echo $fragment->parse('core/page/section.php');
 
 echo $formContent;
+

@@ -13,9 +13,9 @@ use rex_sql;
 class TemplateParser
 {
     /**
-     * Parst DOMAIN_SETTINGS aus Template-Content mit Gruppen-Unterstützung.
+     * Parst DOMAIN_SETTINGS oder GLOBAL_SETTINGS aus Template-Content oder Config mit Gruppen-Unterstützung.
      *
-     * @param string $templateContent Template PHP-Code
+     * @param string $templateContent Template PHP-Code oder Config String
      * @return array Geparste Settings mit Gruppen
      */
     public static function parseSettings(string $templateContent): array
@@ -24,8 +24,8 @@ class TemplateParser
         $groups = [];
         $currentGroup = null;
 
-        // DocBlock extrahieren
-        if (preg_match('#/\*\*.*?DOMAIN_SETTINGS.*?\*/#s', $templateContent, $matches)) {
+        // DocBlock extrahieren (DOMAIN_SETTINGS oder GLOBAL_SETTINGS)
+        if (preg_match('#/\*\*.*?(DOMAIN_SETTINGS|GLOBAL_SETTINGS).*?\*/#s', $templateContent, $matches)) {
             $docBlock = $matches[0];
 
             // Zeilen durchgehen und nach Gruppen + Settings suchen

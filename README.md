@@ -10,7 +10,10 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 🎨 **20+ Feldtypen** - text, textarea, cke5, number, email, tel, date, time, color, colorselect, media, medialist, select, checkbox, link, linklist u.v.m.
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
 - 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges
-- 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
+- 🏢 **Globale Variablen** - Mandantenübergreifende Einstellungen (SSO, Firmeninfos, API-Keys)
+- � **Notice-Felder** - Hinweise, Warnungen und Informationen direkt im Einstellungsformular
+- 🔄 **Domain-Einstellungen kopieren** - Settings einer Domain auf andere Domains übertragen
+- �🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
 - 🔌 **Erweiterbar** - Extension Point System für eigene Feldtypen durch externe Addons
 
 ## Erweiterbarkeit für externe Addons
@@ -65,6 +68,50 @@ Das Addon enthält ein vorkonfiguriertes Demo-Template:
 - `opening_hours` - Strukturierte Öffnungszeiten (Google-Style)
 
 Import über: **Template Manager** → **Setup** → **Demo-Template jetzt importieren**
+
+## Globale Variablen (Global Settings)
+
+Ab Version 1.4.0 unterstützt der Template Manager **Globale Variablen**. Diese sind ideal für Einstellungen, die über alle Domains und Templates hinweg identisch sein sollen (z.B. Firmenname, Social Media Profile, API-Keys), aber dennoch sprachspezifisch verwaltet werden müssen.
+
+### Definition
+
+Die Definition erfolgt unter **Template Manager** -> **Globale Variablen** im Tab **Definition**. Hier wird das gleiche DocBlock-Format verwendet wie in den Templates, jedoch mit dem Marker `GLOBAL_SETTINGS`:
+
+```php
+/**
+ * GLOBAL_SETTINGS
+ * 
+ * --- Unternehmen [fa-solid fa-building] ---
+ * tm_company_name: text|Firmenname|Mein Unternehmen|Offizieller Name
+ * tm_company_email: email|E-Mail|info@beispiel.de|Zentrale Kontaktadresse
+ * 
+ * --- Social Media [fa-brands fa-share-nodes] ---
+ * tm_social_facebook: text|Facebook URL||Link zum Profil
+ * tm_social_instagram: text|Instagram URL||Link zum Profil
+ */
+```
+
+### Werte pflegen
+
+Sobald eine Definition gespeichert wurde, erscheint automatisch der Tab **Werte**. Dort können pro installierter Sprache die konkreten Inhalte gepflegt werden.
+
+### Zugriff im Frontend
+
+Der Zugriff erfolgt identisch zu den Template-Settings über die `TemplateManager::get()` Methode:
+
+```php
+<?php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Holt den Wert (Priorität: Template-Setting > Globales Setting > Default)
+$companyName = TemplateManager::get('tm_company_name');
+?>
+```
+
+**Kaskadierung (Priority):**
+1. **Template-Setting**: Wenn im aktuellen Template ein Feld mit gleichem Namen definiert und befüllt ist.
+2. **Globales Setting**: Wenn im Template nichts definiert ist (oder kein Wert vorliegt), wird der globale Wert gezogen.
+3. **Default-Wert**: Der in der Definition angegebene Standardwert.
 
 ## Template-Konfiguration
 
@@ -195,8 +242,55 @@ Beides kombiniert:
 | `category` | Kategorie-Auswahl (hierarchische Struktur) | `5` (Kategorie-ID) |
 | `categorylist` | Mehrere Kategorien auswählen | `1,5,8` (Kategorie-IDs) |
 | **Spezial-Felder** |
+| `notice` | Hinweis-/Warnbox im Formular (kein Datenbankfeld) | `info` |
 | `social_links` | Social Media Links Repeater | JSON (Icon + URL + Label) |
 | `opening_hours` | Strukturierte Öffnungszeiten | JSON (Wochentage + Sonderzeiten) |
+
+### Notice-Felder – Hinweise und Warnungen im Formular
+
+Der Feldtyp `notice` ist ein rein visuelles Hinweisfeld im Einstellungsformular. Er speichert **keinen Wert** in der Datenbank, sondern zeigt einen formatierten Alert-Block an – ideal für Erklärungen, Warnungen oder Trennungshilfen zwischen Feldergruppen.
+
+**Syntax:**
+```
+tm_key: notice|Label|Typ|Text
+```
+
+**Typen:**
+
+| Typ | Farbe | Verwendung |
+|-----|-------|------------|
+| `info` | Blau (Standard) | Neutrale Hinweise, Erklärungen |
+| `success` | Grün | Positive Infos, Bestätigungen |
+| `warning` | Orange | Wichtige Hinweise, Vorsicht |
+| `danger` | Rot | Kritische Warnungen |
+
+**Beispiele:**
+```
+tm_hint_colors: notice|Hinweis|info|Farben werden als CSS Custom Properties ausgegeben.
+tm_warn_api: notice|Achtung|warning|Änderungen an API-Keys erfordern einen Cache-Flush.
+tm_info_media: notice|Info|success|Bilder sollten mindestens 1200×600 px groß sein.
+tm_alert_delete: notice|Warnung|danger|Das Löschen kann nicht rückgängig gemacht werden!
+```
+
+> **Hinweis:** Das `tm_`-Prefix ist auch bei Notice-Feldern erforderlich. Der Schlüssel kann beliebig gewählt werden, da er nicht in der Datenbank landet.
+
+---
+
+### Domain-Einstellungen kopieren
+
+Settings eines Templates können mit einem Klick von einer Domain auf eine andere übertragen werden. Die Funktion ist nur für Admins oder Benutzer mit dem Recht `template_manager[copy]` sichtbar.
+
+**Vorgehen:**
+1. **Template Manager** → **Template Einstellungen** → Template und Quell-Domain wählen
+2. Button **„Einstellungen kopieren nach …"** unterhalb der Auswahl klicken
+3. Ziel-Domain wählen, Sprachen auswählen, Überschreiben-Option setzen
+4. **„Jetzt kopieren"** klicken → Ergebnis zeigt kopierte / übersprungene / fehlerhafte Einträge
+
+**Optionen:**
+- **Sprachen:** Nur ausgewählte Sprachen werden übertragen
+- **Vorhandene Werte überschreiben** (Standard aktiv): Bestehende Werte in der Ziel-Domain werden ersetzt; deaktiviert werden nur fehlende Werte ergänzt
+
+---
 
 ### External Linklist - Externe Links mit Repeater-Style
 
@@ -1098,6 +1192,19 @@ TemplateManager::getAll(
 MIT License
 
 ## Changelog
+
+### Version 1.5.0 (01.03.2026)
+- ✨ **Neuer Feldtyp `notice`**: Hinweis-, Info-, Warn- und Danger-Boxen direkt im Einstellungsformular (kein DB-Wert)
+- 🔄 **Domain-Einstellungen kopieren**: Settings eines Templates per Formular von einer Domain auf eine andere übertragen
+- 🔒 **Rechteverwaltung Copy**: Nur Admins oder User mit `template_manager[copy]` können kopieren
+- 🌑 **Dark Mode**: OpeningHours-Widget mit vollständigem Dark-Mode via CSS Custom Properties (`--oh-*`)
+- 🐛 **Bugfix**: YRewrite Default-Domain (ID null) wurde als „Unbekannt" angezeigt – `(int)` Cast behebt Typen-Vergleich
+
+### Version 1.4.0
+- 🏢 **Globale Variablen** (`GLOBAL_SETTINGS`): Domainübergreifende Einstellungen mit eigenem Menüpunkt
+- 🔑 **Kaskadierung**: Template-Setting → Globales Setting → Default-Wert
+- 📝 **Akkordeon-Gruppen**: Felder in thematische, aufklappbare Gruppen mit Icons organisieren
+- 🔒 **Gruppen-Rechte**: Gruppen pro Benutzerrolle sichtbar/unsichtbar
 
 ### Version 1.2.0 (19.11.2025)
 - ✨ **Neuer Feldtyp**: `external_linklist` für externe Link-Listen mit Live-Vorschau
