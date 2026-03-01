@@ -146,9 +146,9 @@ $content .= '</div>'; // row
 if ($showCopyBtn) {
     $copyPageUrl = rex_url::backendPage('template_manager/config', ['template_id' => $selectedTemplateId, 'domain_id' => $selectedDomainId]);
     $content .= '<div style="border-top:1px solid rgba(0,0,0,.1); margin-top:8px; padding-top:8px; text-align:right;">';
-    $content .= '<a href="#tm-copy-panel" data-toggle="collapse" class="btn btn-default btn-sm">';
+    $content .= '<button type="button" data-toggle="collapse" data-target="#tm-copy-panel" class="btn btn-default btn-sm">';
     $content .= '<i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_settings_btn');
-    $content .= '</a>';
+    $content .= '</button>';
     $content .= '</div>';
     $content .= '<div class="collapse" id="tm-copy-panel" style="margin-top:12px;">';
     $content .= '<form method="post" action="' . rex_escape($copyPageUrl) . '">';
