@@ -2,6 +2,8 @@
 
 use FriendsOfRedaxo\TemplateManager\TemplateManager;
 
+rex_perm::register('template_manager[copy]', null, rex_perm::OPTIONS);
+
 // Template Settings sind direkt über die Klasse verfügbar:
 // TemplateManager::get('tm_company_name')
 // Keine weitere Initialisierung nötig im Frontend

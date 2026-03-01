@@ -2,6 +2,11 @@
 
 Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentiert.
 
+## [1.5.1] - 2026-03-01
+
+### Fixed
+- 🔒 **Permission `template_manager[copy]` in Rollenverwaltung** - `rex_perm::register()` in `boot.php` ergänzt, damit die Kopier-Berechtigung in Benutzerrollen auswählbar ist
+
 ## [1.5.0] - 2026-03-01
 
 ### Added
