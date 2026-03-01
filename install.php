@@ -20,3 +20,18 @@ $sql->setQuery('
         KEY `clang_id` (`clang_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ');
+
+// Tabelle für globale (template-übergreifende) Variablen erstellen
+$sql->setQuery('
+    CREATE TABLE IF NOT EXISTS `' . rex::getTable('template_manager_globals') . '` (
+        `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+        `setting_key` varchar(255) NOT NULL,
+        `setting_value` text,
+        `clang_id` int(10) unsigned NOT NULL DEFAULT 0,
+        `created_date` datetime DEFAULT NULL,
+        `updated_date` datetime DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `unique_global` (`setting_key`, `clang_id`),
+        KEY `clang_id` (`clang_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+');

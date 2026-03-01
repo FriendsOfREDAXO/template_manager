@@ -11,6 +11,9 @@ page:
         settings:
             title: 'translate:template_manager_settings'
             icon: rex-icon fa-sliders
+        globals:
+            title: 'translate:template_manager_globals'
+            icon: rex-icon fa-globe
         config:
             title: 'translate:template_manager_configure'
             icon: rex-icon fa-edit

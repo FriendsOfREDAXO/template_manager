@@ -71,3 +71,19 @@ template_manager_setup_cleanup_success = Cleanup abgeschlossen. {0} verwaiste Ei
 template_manager_config_domain_language_info = Aktuell bearbeitet:
 template_manager_config_domain_label = Domain:
 template_manager_config_language_label = Sprache:
+
+# Globale Variablen
+template_manager_globals = Globale Variablen
+template_manager_globals_list = Vorhandene globale Variablen
+template_manager_globals_add = Neue globale Variable anlegen
+template_manager_globals_edit = Variable bearbeiten
+template_manager_globals_edit_action = Bearbeiten
+template_manager_globals_delete = Löschen
+template_manager_globals_delete_confirm = Variable "{0}" wirklich löschen (alle Sprachen)?
+template_manager_globals_saved = Globale Variable erfolgreich gespeichert
+template_manager_globals_deleted = Globale Variable "{0}" erfolgreich gelöscht
+template_manager_globals_key = Key (Variablenname)
+template_manager_globals_key_hint = Muss mit tm_ beginnen, z. B. tm_company_name
+template_manager_globals_key_required = Bitte einen Key angeben
+template_manager_globals_cancel = Abbrechen
+template_manager_globals_empty = Noch keine globalen Variablen vorhanden

@@ -66,6 +66,8 @@ class TemplateManager
     /**
      * Lädt Settings in den Cache
      * 
+     * Priorität: Template-spezifische Werte > Globale Variablen
+     * 
      * @param int|null $domainId Domain-ID
      * @param int|null $clangId Sprach-ID
      */
@@ -79,8 +81,16 @@ class TemplateManager
             $domain = rex_yrewrite::getDomainById($domainId);
         }
         
+        $resolvedClangId = $clangId ?? rex_clang::getCurrentId();
+        
+        // Globale Variablen laden (niedrigste Priorität)
+        $globalVars = GlobalVariables::getAll($resolvedClangId);
+        
+        // Template-spezifische Werte laden (überschreiben globale Variablen)
+        $domainConfig = $instance->getDomainConfig($domain, $clangId);
+        
         $cacheKey = self::getCacheKey($domainId, $clangId);
-        self::$cache[$cacheKey] = $instance->getDomainConfig($domain, $clangId);
+        self::$cache[$cacheKey] = array_merge($globalVars, $domainConfig);
     }
     
     /**
