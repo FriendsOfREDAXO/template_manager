@@ -145,17 +145,14 @@ $content .= '</div>'; // row
 
 if ($showCopyBtn) {
     $copyPageUrl = rex_url::backendPage('template_manager/config', ['template_id' => $selectedTemplateId, 'domain_id' => $selectedDomainId]);
-}
-
-$content .= '</div>'; // alert
-
-if ($showCopyBtn) {
-    $content .= '<div style="margin-top:8px; text-align:right;">';
+    $content .= '<div style="border-top:1px solid rgba(0,0,0,.1); margin-top:8px; padding-top:8px; text-align:right;">';
     $content .= '<button type="button" data-toggle="collapse" data-target="#tm-copy-panel" class="btn btn-primary">';
     $content .= '<i class="rex-icon fa-copy"></i> ' . $addon->i18n('template_manager_copy_settings_btn');
     $content .= '</button>';
     $content .= '</div>';
 }
+
+$content .= '</div>'; // alert
 
 if ($showCopyBtn) {
     $content .= '<div class="collapse" id="tm-copy-panel">';
