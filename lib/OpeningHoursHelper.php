@@ -67,6 +67,9 @@ class OpeningHoursHelper
                 'opens_at' => 'Öffnet um',
                 'closes_at' => 'Schließt um',
                 'time_suffix' => 'Uhr',
+                'opens_today_at' => 'Öffnet heute um',
+                'opens_tomorrow_at' => 'Öffnet morgen um',
+                'opens_on_at' => 'Öffnet {day} um',
             ],
         ],
         'en' => [
@@ -102,6 +105,9 @@ class OpeningHoursHelper
                 'opens_at' => 'Opens at',
                 'closes_at' => 'Closes at',
                 'time_suffix' => '',
+                'opens_today_at' => 'Opens today at',
+                'opens_tomorrow_at' => 'Opens tomorrow at',
+                'opens_on_at' => 'Opens {day} at',
             ],
         ],
     ];
@@ -514,7 +520,83 @@ class OpeningHoursHelper
             }
         }
         
+        // Geschlossen und heute keine weitere Öffnung: nächste Öffnung an den Folgetagen
+        if (!$isOpen) {
+            $next = $this->getNextOpening();
+            $result['next_opening'] = $next;
+            if (null === $result['next_change'] && null !== $next) {
+                $result['next_change'] = $next['time'];
+                $result['next_change_label'] = $next['label'];
+            }
+        }
+
         return $result;
+    }
+
+    /**
+     * Nächste Öffnung ab jetzt (berücksichtigt Sonderzeiten, Feiertage und 24h-Tage).
+     *
+     * @param \DateTimeInterface|null $from Zeitpunkt (Standard: jetzt)
+     * @param int $maxDays wie viele Tage vorausgeschaut wird
+     * @return array{date: string, time: string, weekday: string, is_today: bool, is_tomorrow: bool, label: string}|null
+     */
+    public function getNextOpening(?\DateTimeInterface $from = null, int $maxDays = 14): ?array
+    {
+        if (!$this->hasData()) {
+            return null;
+        }
+        $from = \DateTimeImmutable::createFromInterface($from ?? new \DateTimeImmutable());
+        $today = $from->setTime(0, 0);
+        for ($i = 0; $i <= $maxDays; ++$i) {
+            $day = $today->modify('+' . $i . ' days');
+            [$status, $times] = $this->getDayRule($day);
+            if ('closed' === $status) {
+                continue;
+            }
+            $slots = '24h' === $status ? [['open' => '00:00']] : $times;
+            usort($slots, static fn ($a, $b) => strcmp((string) ($a['open'] ?? ''), (string) ($b['open'] ?? '')));
+            foreach ($slots as $slot) {
+                $open = (string) ($slot['open'] ?? '');
+                if ('' === $open || (0 === $i && $open <= $from->format('H:i'))) {
+                    continue;
+                }
+                $key = strtolower($day->format('l'));
+                $weekday = $this->translate('weekdays.' . $key, ucfirst($key));
+                $suffix = $this->translate('labels.time_suffix');
+                $prefix = match ($i) {
+                    0 => $this->translate('labels.opens_today_at'),
+                    1 => $this->translate('labels.opens_tomorrow_at'),
+                    default => str_replace('{day}', $i < 7 ? $weekday : $weekday . ', ' . $this->formatDate($day->format('Y-m-d')), $this->translate('labels.opens_on_at')),
+                };
+                return [
+                    'date' => $day->format('Y-m-d'),
+                    'time' => $open,
+                    'weekday' => $weekday,
+                    'is_today' => 0 === $i,
+                    'is_tomorrow' => 1 === $i,
+                    'label' => trim($prefix . ' ' . $open . ('' !== $suffix ? ' ' . $suffix : '')),
+                ];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Regel eines Tages: Sonderzeit (Vorrang) oder reguläre Zeit des Wochentags.
+     *
+     * @return array{0: string, 1: array<int, array{open?: string, close?: string}>} [status, times]
+     */
+    private function getDayRule(\DateTimeInterface $day): array
+    {
+        $date = $day->format('Y-m-d');
+        $year = (int) $day->format('Y');
+        foreach ($this->data['special'] ?? [] as $special) {
+            if ($this->resolveDate((string) ($special['date'] ?? ''), $year) === $date) {
+                return [(string) ($special['status'] ?? 'closed'), (array) ($special['times'] ?? [])];
+            }
+        }
+        $regular = $this->data['regular'][strtolower($day->format('l'))] ?? ['status' => 'closed'];
+        return [(string) ($regular['status'] ?? 'closed'), (array) ($regular['times'] ?? [])];
     }
     
     /**
@@ -611,8 +693,9 @@ class OpeningHoursHelper
     /**
      * Bewegliches Datum auflösen (easter+X etc.)
      */
-    private function resolveDate(string $date): ?string
+    private function resolveDate(string $date, ?int $year = null): ?string
     {
+        $year ??= (int) date('Y');
         if (empty($date)) {
             return null;
         }
@@ -624,12 +707,11 @@ class OpeningHoursHelper
         
         // Festes Datum (MM-DD) für aktuelles Jahr
         if (preg_match('/^(\d{2})-(\d{2})$/', $date, $m)) {
-            return date('Y') . '-' . $m[1] . '-' . $m[2];
+            return $year . '-' . $m[1] . '-' . $m[2];
         }
         
         // Easter-basiertes Datum
         if (str_starts_with($date, 'easter')) {
-            $year = (int) date('Y');
             
             // Offset extrahieren (easter, easter+0, easter+1, easter-2 etc.)
             $offset = 0;

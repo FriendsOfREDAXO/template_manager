@@ -644,6 +644,9 @@ tm_opening_hours: opening_hours|Öffnungszeiten||Geschäftszeiten inkl. Feiertag
 
 **Frontend-Nutzung mit OpeningHoursHelper (empfohlen):**
 
+> **Nächste Öffnung:** `$helper->getNextOpening()` gibt z. B. `['date' => '2026-10-05', 'time' => '11:30', 'label' => 'Öffnet Montag um 11:30 Uhr', …]` zurück – auch über Wochenenden, Ruhetage und Feiertage hinweg. `getCurrentStatus()['next_change_label']` enthält diesen Text automatisch, wenn heute nicht mehr geöffnet wird.
+
+
 Die `OpeningHoursHelper`-Klasse bietet eine komfortable API mit Übersetzungen und vorformatierten Daten:
 
 ```php
