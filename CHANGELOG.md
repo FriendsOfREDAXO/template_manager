@@ -2,11 +2,13 @@
 
 Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentiert.
 
+## [1.6.0] - 2026-10-03
 
-## Unveröffentlicht
-
-### Neu
-- **Öffnungszeiten – nächste Öffnung:** `OpeningHoursHelper::getNextOpening()` liefert die nächste Öffnung auch an Folgetagen (Sonderzeiten, bewegliche Feiertage und 24-Stunden-Tage werden berücksichtigt), mit fertigem Text wie „Öffnet morgen um 11:30 Uhr“ oder „Öffnet Montag um 11:30 Uhr“. `getCurrentStatus()` nutzt das, wenn heute keine weitere Öffnung ansteht, und liefert zusätzlich `next_opening`. Neue Übersetzungsschlüssel `labels.opens_today_at`, `labels.opens_tomorrow_at`, `labels.opens_on_at` ({day}).
+### Added
+- 🕒 **Öffnungszeiten – nächste Öffnung auch an Folgetagen** - `OpeningHoursHelper::getNextOpening()` liefert die nächste Öffnung nach dem letzten Zeitfenster, an Ruhetagen und an Feiertagen, mit fertigem Text wie „Öffnet morgen um 11:30 Uhr“ oder „Öffnet Montag um 11:30 Uhr“ (#11)
+  - Sonderzeiten haben Vorrang, `MM-DD`- und `easter±n`-Termine werden für das jeweilige Jahr aufgelöst (auch über den Jahreswechsel), 24-Stunden-Tage zählen ab 0:00
+  - `getCurrentStatus()` füllt `next_change`/`next_change_label` damit, wenn heute keine weitere Öffnung ansteht, und liefert zusätzlich `next_opening`
+  - Neue Übersetzungsschlüssel `labels.opens_today_at`, `labels.opens_tomorrow_at`, `labels.opens_on_at` (`{day}`)
 
 ## [1.5.1] - 2026-03-01
 
