@@ -312,7 +312,9 @@ foreach ($clangs as $clang) {
 
             // Optional: Font Awesome Icon vor dem Gruppennamen anzeigen
             if (!empty($group['icon'])) {
-                $panel .= '<i class="' . rex_escape($group['icon']) . '"></i> ';
+                // „fa-key“ allein zeigt im Backend nichts an – REDAXO braucht die Klasse rex-icon dazu
+                $iconClass = str_contains((string) $group['icon'], 'rex-icon') ? (string) $group['icon'] : 'rex-icon ' . $group['icon'];
+                $panel .= '<i class="' . rex_escape($iconClass) . ' tm-group__icon" aria-hidden="true"></i> ';
             }
 
             $panel .= rex_escape($group['name']);
@@ -410,6 +412,7 @@ $formContent = '
 .tm-toolbar__count { font-size: 13px; opacity: .8; }
 .tm-no-results { margin: 0 0 14px; }
 .tm-group .panel-title > a { display: flex; align-items: center; gap: 6px; }
+.tm-group__icon { width: 1.3em; text-align: center; opacity: .75; }
 .tm-group__meta { margin-left: auto; font-size: 12px; font-weight: 400; opacity: .7; white-space: nowrap; }
 .tm-group__empty { color: #c2410c; font-weight: 600; }
 .tm-field.tm-field--hit > .form-group { border-left: 3px solid #4b9ad9; padding-left: 10px; }
