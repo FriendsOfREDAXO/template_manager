@@ -9,6 +9,9 @@ Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentie
 - 🔗 **Direktlinks auf Gruppen und Felder** – `#tm-group-<name>` und `#tm-field-<key>` öffnen die Gruppe, scrollen zum Feld, heben es hervor und setzen den Cursor hinein; `TemplateManager::getSettingsUrl($key, $domainId, $templateId)` baut den Link
 - 🪟 **Einstellung im Fenster bearbeiten** – `TemplateManager::getSettingsLink($key, $label, $domainId)` öffnet die Gruppe eines Feldes im Overlay (Ajax über `rex_api` `template_manager_settings`, CSRF-geschützt, Rechte wie die Einstellungsseite), z. B. aus Modul-Eingaben oder Dashboards; Gestaltung wie das MediaPlace-Overlay inkl. Dunkelmodus; Widgets werden per `rex:ready` initialisiert; optional Seite nach dem Speichern neu laden
 
+### Fixed
+- 🎨 **Gruppen-Icons im Akkordeon** – Icons aus `--- Gruppe [fa-…] ---` wurden ohne die Klasse `rex-icon` ausgegeben und im Backend nicht angezeigt
+
 ## [1.6.0] - 2026-10-03
 
 ### Added
