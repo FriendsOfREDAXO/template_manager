@@ -246,6 +246,14 @@ Beides kombiniert:
 | `social_links` | Social Media Links Repeater | JSON (Icon + URL + Label) |
 | `opening_hours` | Strukturierte Öffnungszeiten | JSON (Wochentage + Sonderzeiten) |
 
+### Koordinaten (Feldtyp `geo`)
+
+```php
+ * tm_geo: geo|Koordinaten||Für Karte und Routenplaner
+```
+
+Gespeichert wird `Breite,Länge` (z. B. `52.520008,13.404954`). Ist das AddOn [vector_maps](https://github.com/KLXM/vector_maps) installiert, erhält das Feld den Kartenpicker: Karte, Adresssuche und Übernahme per Klick – auch im Einstellungs-Fenster. Ohne vector_maps bleibt es ein Textfeld mit Formatprüfung.
+
 ### Notice-Felder – Hinweise und Warnungen im Formular
 
 Der Feldtyp `notice` ist ein rein visuelles Hinweisfeld im Einstellungsformular. Er speichert **keinen Wert** in der Datenbank, sondern zeigt einen formatierten Alert-Block an – ideal für Erklärungen, Warnungen oder Trennungshilfen zwischen Feldergruppen.
