@@ -42,6 +42,7 @@ class FieldRendererManager
             new FieldRenderer\ExternalLinklistFieldRenderer(),
             new FieldRenderer\SocialLinksFieldRenderer(),
             new FieldRenderer\OpeningHoursFieldRenderer(),
+            new FieldRenderer\GeoFieldRenderer(),
             new FieldRenderer\NoticeFieldRenderer(),
         ];
         

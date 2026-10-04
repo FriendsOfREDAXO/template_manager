@@ -1,0 +1,137 @@
+/* Template Manager: Einstellung im Fenster – Gestaltung wie das MediaPlace-Overlay (REDAXO-Backend-Palette, Hell/Dunkel) */
+:root {
+    --tm-so-overlay-bg: rgba(0, 0, 0, 0.6);
+    --tm-so-modal-bg: #fff;
+    --tm-so-modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --tm-so-header-bg: #324050;
+    --tm-so-body-bg: #fff;
+    --tm-so-footer-bg: #f3f6fb;
+    --tm-so-border: #dfe3e9;
+    --tm-so-text: #324050;
+    --tm-so-muted: #68727d;
+    --tm-so-btn-bg: #324050;
+    --tm-so-btn-hover: #283542;
+    --tm-so-focus: #f0ad4e;
+    --tm-so-success: #3c763d;
+    --tm-so-error: #d9534f;
+}
+body.rex-theme-dark {
+    --tm-so-overlay-bg: rgba(0, 0, 0, 0.75);
+    --tm-so-modal-bg: #1a202c;
+    --tm-so-modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --tm-so-header-bg: #2d3748;
+    --tm-so-body-bg: #1a202c;
+    --tm-so-footer-bg: #212836;
+    --tm-so-border: #3a4557;
+    --tm-so-text: #e2e8f0;
+    --tm-so-muted: #a0aec0;
+    --tm-so-btn-bg: #6c9bd2;
+    --tm-so-btn-hover: #8ab8e8;
+    --tm-so-success: #68d391;
+    --tm-so-error: #fc8181;
+}
+@media (prefers-color-scheme: dark) {
+    body.rex-has-theme:not(.rex-theme-light) {
+        --tm-so-overlay-bg: rgba(0, 0, 0, 0.75);
+        --tm-so-modal-bg: #1a202c;
+        --tm-so-modal-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        --tm-so-header-bg: #2d3748;
+        --tm-so-body-bg: #1a202c;
+        --tm-so-footer-bg: #212836;
+        --tm-so-border: #3a4557;
+        --tm-so-text: #e2e8f0;
+        --tm-so-muted: #a0aec0;
+        --tm-so-btn-bg: #6c9bd2;
+        --tm-so-btn-hover: #8ab8e8;
+        --tm-so-success: #68d391;
+        --tm-so-error: #fc8181;
+    }
+}
+
+body.tm-so-open { overflow: hidden; }
+#tm-settings-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: var(--tm-so-overlay-bg);
+}
+#tm-settings-overlay[hidden] { display: none; }
+#tm-settings-overlay .tm-so-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(860px, 100%);
+    max-height: 85vh;
+    border-radius: 0;
+    background: var(--tm-so-modal-bg);
+    color: var(--tm-so-text);
+    box-shadow: var(--tm-so-modal-shadow);
+    overflow: hidden;
+}
+#tm-settings-overlay .tm-so-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 14px;
+    background: var(--tm-so-header-bg);
+    color: #fff;
+    flex-shrink: 0;
+}
+#tm-settings-overlay .tm-so-icon { font-size: 16px; opacity: .85; }
+#tm-settings-overlay .tm-so-heading { flex: 1; min-width: 0; }
+#tm-settings-overlay h2 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: #fff; }
+#tm-settings-overlay .tm-so-sub { margin: 0; font-size: 12px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tm-settings-overlay .tm-so-page { color: #fff; font-size: 12px; opacity: .8; white-space: nowrap; text-decoration: none; }
+#tm-settings-overlay .tm-so-page:hover, #tm-settings-overlay .tm-so-page:focus-visible { opacity: 1; text-decoration: underline; }
+#tm-settings-overlay .tm-so-close {
+    display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0;
+    border: 0; border-radius: 0; background: transparent; color: #fff; font-size: 16px; cursor: pointer;
+}
+#tm-settings-overlay .tm-so-close:hover, #tm-settings-overlay .tm-so-close:focus-visible { background: rgba(255, 255, 255, .15); outline: none; }
+#tm-settings-overlay .tm-so-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 6px;
+    background: var(--tm-so-body-bg);
+}
+#tm-settings-overlay .tm-so-body .control-label { color: var(--tm-so-text); }
+#tm-settings-overlay .tm-field--focus > .form-group {
+    margin-left: -12px;
+    padding-left: 9px;
+    border-left: 3px solid var(--tm-so-focus);
+    animation: tm-so-focus 1.6s ease-out;
+}
+@keyframes tm-so-focus { from { background: rgba(240, 173, 78, .22); } to { background: transparent; } }
+#tm-settings-overlay .tm-so-loading, #tm-settings-overlay .tm-so-error { margin: 12px 0 18px; color: var(--tm-so-muted); }
+#tm-settings-overlay .tm-so-error { color: var(--tm-so-error); }
+#tm-settings-overlay .tm-so-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--tm-so-border);
+    background: var(--tm-so-footer-bg);
+    flex-shrink: 0;
+}
+#tm-settings-overlay .tm-so-status { flex: 1; font-size: 13px; color: var(--tm-so-muted); }
+#tm-settings-overlay .tm-so-status[data-kind="success"] { color: var(--tm-so-success); font-weight: 600; }
+#tm-settings-overlay .tm-so-status[data-kind="error"] { color: var(--tm-so-error); font-weight: 600; }
+#tm-settings-overlay .tm-so-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--tm-so-border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--tm-so-text);
+    font-weight: 600;
+    cursor: pointer;
+}
+#tm-settings-overlay .tm-so-save { border-color: var(--tm-so-btn-bg); background: var(--tm-so-btn-bg); color: #fff; }
+#tm-settings-overlay .tm-so-save:hover:not([disabled]) { background: var(--tm-so-btn-hover); border-color: var(--tm-so-btn-hover); }
+#tm-settings-overlay .tm-so-save[disabled] { opacity: .55; cursor: default; }
+#tm-settings-overlay .tm-so-btn:focus-visible { outline: 2px solid var(--tm-so-focus); outline-offset: 2px; }
+
+/* Link-Stil für TemplateManager::getSettingsLink() */
+a.tm-settings-link { white-space: nowrap; }
