@@ -1013,6 +1013,37 @@ $allSettings = TemplateManager::getAll();
 4. Einstellungen in den Sprach-Tabs eingeben
 5. **Speichern** klicken (speichert alle Sprachen gleichzeitig)
 
+### Übersicht bei vielen Einstellungen
+
+- **Suche:** Über den Gruppen steht ein Suchfeld. Es durchsucht Bezeichnung, Schlüssel und Beschreibung aller Felder, klappt passende Gruppen auf und blendet den Rest aus (Esc leert die Suche).
+- **Status je Gruppe:** In der Kopfzeile jeder Gruppe steht, wie viele Felder sie hat und wie viele davon leer sind.
+- **Alle aufklappen / zuklappen**, mehrere Gruppen gleichzeitig offen; die offenen Gruppen bleiben nach dem Speichern offen.
+- Die Leiste mit *Einstellungen speichern* bleibt beim Scrollen unten sichtbar.
+
+### Direkt zu einer Einstellung verlinken
+
+```php
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+// Link auf die Einstellungsseite – Gruppe aufgeklappt, Feld hervorgehoben und fokussiert
+$url = TemplateManager::getSettingsUrl('tm_hotel_phone', $domainId);
+// → index.php?page=template_manager/config&template_id=1&domain_id=3#tm-field-tm_hotel_phone
+
+// Gruppe direkt öffnen: …#tm-group-<gruppenname> (z. B. #tm-group-kontakt)
+```
+
+### Einstellung im Fenster bearbeiten (Modul-Eingaben, Dashboards …)
+
+```php
+// <a> mit data-tm-settings: öffnet die Gruppe des Feldes im Overlay, ohne Seitenwechsel
+echo TemplateManager::getSettingsLink('tm_hotel_phone', 'Telefon ändern', $domainId);
+
+// Optionen: eigenes Icon/Klasse, Titel, Seite nach dem Speichern neu laden
+echo TemplateManager::getSettingsLink('tm_checkin', 'Check-in', $domainId, null, ['reload' => true, 'icon' => '', 'title' => 'Anreise']);
+```
+
+Das Overlay lädt die Gruppe per Ajax (`rex-api-call=template_manager_settings`) und speichert nur deren Felder. Es gelten dieselben Rechte wie auf der Einstellungsseite (inkl. Gruppen-Rollen), der Speicheraufruf ist CSRF-geschützt. Feld-Widgets (Medienpool, Linkmap, Öffnungszeiten …) werden über `rex:ready` initialisiert. Ohne JavaScript – oder mit Strg/⌘-Klick – führt der Link zur Einstellungsseite.
+
 ### Mehrsprachigkeit
 
 - Jede Sprache hat einen eigenen Tab

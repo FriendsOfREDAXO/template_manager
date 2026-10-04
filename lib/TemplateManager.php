@@ -6,6 +6,7 @@ use rex;
 use rex_article;
 use rex_clang;
 use rex_sql;
+use rex_url;
 use rex_yrewrite;
 use rex_yrewrite_domain;
 
@@ -101,6 +102,67 @@ class TemplateManager
     /**
      * Cache zurücksetzen (für Tests)
      */
+    /**
+     * Backend-Link direkt zu einer Einstellung (Einstellungsseite, Gruppe aufgeklappt, Feld hervorgehoben).
+     *
+     * @param string|null $key Feldschlüssel (tm_…) – ohne: Einstellungsseite des Templates
+     * @param int|null $domainId YRewrite-Domain – ohne: aktuelle Domain
+     * @param int|null $templateId Template – ohne: das erste Template, das dieses Feld definiert
+     */
+    public static function getSettingsUrl(?string $key = null, ?int $domainId = null, ?int $templateId = null): string
+    {
+        $key = null !== $key ? (string) preg_replace('/[^\w-]/', '', $key) : null;
+        $templateId ??= self::findTemplateId($key);
+        $domainId ??= rex_yrewrite::getCurrentDomain()?->getId();
+        $params = array_filter(['template_id' => $templateId, 'domain_id' => $domainId], static fn ($v): bool => null !== $v);
+
+        return rex_url::backendPage('template_manager/config', $params, false) . ($key ? '#tm-field-' . $key : '');
+    }
+
+    /**
+     * Link, der eine Einstellung im Fenster öffnet (Ajax, ohne Seitenwechsel) – ohne JavaScript führt er
+     * zur Einstellungsseite. Für Modul-Eingaben, Dashboards, Hinweise:
+     *
+     *   echo TemplateManager::getSettingsLink('tm_hotel_phone', 'Telefon ändern', $domainId);
+     *
+     * @param array{class?: string, icon?: string, reload?: bool, title?: string} $options
+     *        reload: aufrufende Seite nach dem Speichern neu laden (z. B. damit eine Vorschau den neuen Wert zeigt)
+     */
+    public static function getSettingsLink(string $key, string $label, ?int $domainId = null, ?int $templateId = null, array $options = []): string
+    {
+        $key = (string) preg_replace('/[^\w-]/', '', $key);
+        $templateId ??= self::findTemplateId($key);
+        $domainId ??= rex_yrewrite::getCurrentDomain()?->getId();
+        $attributes = [
+            'href' => self::getSettingsUrl($key, $domainId, $templateId),
+            'class' => $options['class'] ?? 'tm-settings-link',
+            'data-tm-settings' => $key,
+            'data-tm-template' => (string) $templateId,
+            'data-tm-domain' => (string) $domainId,
+        ];
+        if (!empty($options['reload'])) {
+            $attributes['data-tm-reload'] = '1';
+        }
+        if (!empty($options['title'])) {
+            $attributes['data-tm-title'] = (string) $options['title'];
+        }
+        $icon = $options['icon'] ?? 'rex-icon fa-sliders';
+
+        return '<a' . \rex_string::buildAttributes($attributes) . '>' . ('' !== $icon ? '<i class="' . \rex_escape($icon) . '" aria-hidden="true"></i> ' : '') . \rex_escape($label) . '</a>';
+    }
+
+    /** Erstes Template, das das Feld definiert (ohne Feld: erstes Template mit Einstellungen) */
+    public static function findTemplateId(?string $key = null): ?int
+    {
+        foreach (TemplateParser::getAllTemplates() as $template) {
+            if (null === $key || isset($template['settings'][$key])) {
+                return (int) $template['id'];
+            }
+        }
+
+        return null;
+    }
+
     public static function clearCache(): void
     {
         self::$cache = null;

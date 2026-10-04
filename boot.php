@@ -9,6 +9,17 @@ rex_perm::register('template_manager[copy]', null, rex_perm::OPTIONS);
 // Keine weitere Initialisierung nötig im Frontend
 
 
+// Einstellungen im Fenster bearbeiten (rex_api + Ajax, Design wie MediaPlace): Links mit data-tm-settings
+// öffnen die Gruppe eines Feldes im Overlay – aus Modul-Eingaben, Dashboards, Hinweisen …
+rex_api_function::register('template_manager_settings', \FriendsOfRedaxo\TemplateManager\Api\Settings::class);
+if (rex::isBackend() && rex::getUser()) {
+    rex_view::addCssFile($this->getAssetsUrl('template_manager.css'));
+    rex_view::addJsFile($this->getAssetsUrl('template_manager.js'));
+    rex_view::setJsProperty('template_manager', [
+        'settings_api' => rex_url::backendController(\FriendsOfRedaxo\TemplateManager\Api\Settings::getUrlParams(), false),
+    ]);
+}
+
 // Extension Point: Template-Liste im Backend erweitern
 if (rex::isBackend()) {
     rex_extension::register('PACKAGES_INCLUDED', function() {

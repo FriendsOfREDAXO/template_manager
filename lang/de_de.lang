@@ -100,3 +100,14 @@ template_manager_copy_overwrite = Vorhandene Werte in der Ziel-Domain überschre
 template_manager_copy_cancel = Abbrechen
 template_manager_copy_execute = Jetzt kopieren
 template_manager_copy_done = Einstellungen kopiert: {0} kopiert, {1} übersprungen, {2} Fehler
+
+# Übersicht in den Einstellungen
+template_manager_search_placeholder = Einstellung suchen …
+template_manager_search_label = Einstellungen durchsuchen
+template_manager_search_hit = Treffer
+template_manager_search_hits = Treffer
+template_manager_no_results = Keine passende Einstellung gefunden.
+template_manager_expand_all = Alle aufklappen
+template_manager_collapse_all = Alle zuklappen
+template_manager_group_fields = {0} Felder
+template_manager_group_empty = {0} leer

@@ -244,7 +244,19 @@ foreach ($clangs as $clang) {
 
     // Gruppen-basierte Darstellung mit Akkordeons
     if (!empty($templateData['groups'])) {
-        $panel .= '<div class="panel-group" id="accordion-lang-' . $clang->getId() . '">';
+        // Werkzeugleiste: Suche über alle Einstellungen, alle Gruppen auf-/zuklappen
+        $panel .= '<div class="tm-toolbar" data-tm-toolbar>';
+        $panel .= '<div class="tm-toolbar__search"><i class="rex-icon fa-search" aria-hidden="true"></i>';
+        $panel .= '<input type="search" class="form-control" data-tm-search placeholder="' . rex_escape($addon->i18n('template_manager_search_placeholder')) . '" aria-label="' . rex_escape($addon->i18n('template_manager_search_label')) . '" autocomplete="off"></div>';
+        $panel .= '<div class="btn-group">';
+        $panel .= '<button type="button" class="btn btn-default btn-sm" data-tm-expand><i class="rex-icon fa-angle-double-down"></i> ' . $addon->i18n('template_manager_expand_all') . '</button>';
+        $panel .= '<button type="button" class="btn btn-default btn-sm" data-tm-collapse><i class="rex-icon fa-angle-double-up"></i> ' . $addon->i18n('template_manager_collapse_all') . '</button>';
+        $panel .= '</div>';
+        $panel .= '<span class="tm-toolbar__count" aria-live="polite" data-tm-count></span>';
+        $panel .= '</div>';
+        $panel .= '<p class="tm-no-results" hidden data-tm-empty><i class="rex-icon fa-info-circle"></i> ' . $addon->i18n('template_manager_no_results') . '</p>';
+
+        $panel .= '<div class="panel-group tm-groups" id="accordion-lang-' . $clang->getId() . '" data-tm-groups data-tm-storage="tm-open-' . $selectedTemplateId . '-' . $selectedDomainId . '-' . $clang->getId() . '">';
 
         $groupIndex = 0;
         foreach ($templateData['groups'] as $groupKey => $group) {
@@ -269,13 +281,32 @@ foreach ($clangs as $clang) {
                 continue; // Gruppe überspringen wenn keine Rechte
             }
 
+
             $collapseId = 'collapse-' . $clang->getId() . '-' . $groupIndex;
             $isFirstGroup = 0 === $groupIndex;
 
-            $panel .= '<div class="panel panel-default">';
+            // Status je Gruppe: Anzahl Felder und leere Felder
+            $fieldCount = 0;
+            $emptyCount = 0;
+            foreach ($group['fields'] as $fieldKey) {
+                if (!isset($templateData['settings'][$fieldKey])) {
+                    continue;
+                }
+                ++$fieldCount;
+                $value = $savedValues[$fieldKey] ?? $templateData['settings'][$fieldKey]['default'];
+                if ('' === trim((string) $value)) {
+                    ++$emptyCount;
+                }
+            }
+
+            // Sprungziel für Direktlinks, z. B. …&domain_id=2#tm-group-kontakt
+            $groupAnchor = 'tm-group-' . rex_string::normalize((string) $group['name'], '-');
+
+            $panel .= '<div class="panel panel-default tm-group" id="' . rex_escape($groupAnchor) . ($clang->getId() !== rex_clang::getStartId() ? '-' . $clang->getId() : '') . '" data-tm-group>';
             $panel .= '<div class="panel-heading" role="tab">';
             $panel .= '<h4 class="panel-title">';
-            $panel .= '<a role="button" data-toggle="collapse" data-parent="#accordion-lang-' . $clang->getId() . '" ';
+            // ohne data-parent: mehrere Gruppen dürfen gleichzeitig offen sein
+            $panel .= '<a role="button" data-toggle="collapse" ';
             $panel .= 'href="#' . $collapseId . '" aria-expanded="' . ($isFirstGroup ? 'true' : 'false') . '">';
             $panel .= '<i class="rex-icon fa-chevron-down"></i> ';
 
@@ -291,6 +322,12 @@ foreach ($clangs as $clang) {
                 $panel .= ' <small class="label label-info">' . implode(', ', array_map('rex_escape', $group['roles'])) . '</small>';
             }
 
+            $panel .= '<span class="tm-group__meta">' . $addon->i18n('template_manager_group_fields', $fieldCount);
+            if ($emptyCount > 0) {
+                $panel .= ' · <span class="tm-group__empty">' . $addon->i18n('template_manager_group_empty', $emptyCount) . '</span>';
+            }
+            $panel .= '</span>';
+
             $panel .= '</a>';
             $panel .= '</h4>';
             $panel .= '</div>';
@@ -302,7 +339,12 @@ foreach ($clangs as $clang) {
             foreach ($group['fields'] as $fieldKey) {
                 if (isset($templateData['settings'][$fieldKey])) {
                     $setting = $templateData['settings'][$fieldKey];
+                    // Suchtext: Bezeichnung, Schlüssel und Beschreibung
+                    $searchText = mb_strtolower(trim(($setting['label'] ?? '') . ' ' . $setting['key'] . ' ' . ($setting['description'] ?? '')));
+                    $fieldAnchor = 'tm-field-' . $setting['key'] . ($clang->getId() !== rex_clang::getStartId() ? '-' . $clang->getId() : '');
+                    $panel .= '<div class="tm-field" id="' . rex_escape($fieldAnchor) . '" data-tm-field="' . rex_escape($searchText) . '">';
                     $panel .= FieldRendererManager::renderField($setting, $savedValues[$setting['key']] ?? $setting['default'], $clang->getId());
+                    $panel .= '</div>';
                 }
             }
 
@@ -354,16 +396,101 @@ $formContent = $fragment->parse('core/page/section.php');
 
 // Formular-Wrapper
 $formContent = '
-<form method="post">
+<form method="post" class="tm-config-form">
     <input type="hidden" name="template_id" value="' . $selectedTemplateId . '">
     <input type="hidden" name="domain_id" value="' . $selectedDomainId . '">
     ' . $formContent . '
 </form>
 
+<style nonce="' . rex_response::getNonce() . '">
+.tm-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 14px; }
+.tm-toolbar__search { position: relative; flex: 1 1 280px; max-width: 460px; }
+.tm-toolbar__search .rex-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: .6; pointer-events: none; }
+.tm-toolbar__search .form-control { padding-left: 32px; }
+.tm-toolbar__count { font-size: 13px; opacity: .8; }
+.tm-no-results { margin: 0 0 14px; }
+.tm-group .panel-title > a { display: flex; align-items: center; gap: 6px; }
+.tm-group__meta { margin-left: auto; font-size: 12px; font-weight: 400; opacity: .7; white-space: nowrap; }
+.tm-group__empty { color: #c2410c; font-weight: 600; }
+.tm-field.tm-field--hit > .form-group { border-left: 3px solid #4b9ad9; padding-left: 10px; }
+.tm-field--focus > .form-group { border-left: 3px solid #f0ad4e; padding-left: 10px; animation: tm-focus 1.6s ease-out; }
+@keyframes tm-focus { from { background: rgba(240, 173, 78, .25); } to { background: transparent; } }
+.tm-config-form .panel-footer { position: sticky; bottom: 0; z-index: 5; box-shadow: 0 -6px 16px rgba(0, 0, 0, .08); }
+</style>
 <script type="text/javascript" nonce="' . rex_response::getNonce() . '">
 jQuery(function($) {
     // Ersten Tab aktiv setzen
     $("#rex-js-template-manager-tabs a:first").tab("show");
+
+    $("[data-tm-groups]").each(function () {
+        var $groups = $(this);
+        var $pane = $groups.closest(".tab-pane");
+        var key = $groups.data("tm-storage");
+        var $search = $pane.find("[data-tm-search]");
+        var $count = $pane.find("[data-tm-count]");
+        var $empty = $pane.find("[data-tm-empty]");
+        var store = function () {
+            try {
+                var open = $groups.find(".panel-collapse.in").map(function () { return this.id; }).get();
+                localStorage.setItem(key, JSON.stringify(open));
+            } catch (e) {}
+        };
+
+        // Direktlink auf ein Feld (#tm-field-…) oder eine Gruppe (#tm-group-…) hat Vorrang,
+        // sonst die zuletzt geöffneten Gruppen wiederherstellen
+        var hash = location.hash.replace(/[^#\\w-]/g, "");
+        var $field = hash.indexOf("#tm-field-") === 0 ? $groups.find(hash) : $();
+        var $target = $field.length ? $field.closest("[data-tm-group]") : (hash ? $groups.find(hash) : $());
+        var saved = null;
+        try { saved = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) {}
+        if ($target.length) {
+            $groups.find(".panel-collapse").removeClass("in");
+            $target.find(".panel-collapse").addClass("in");
+            setTimeout(function () {
+                ($field.length ? $field[0] : $target[0]).scrollIntoView({ block: $field.length ? "center" : "start" });
+                if ($field.length) {
+                    $field.addClass("tm-field--focus");
+                    $field.find("input, select, textarea").filter(":visible").first().trigger("focus");
+                }
+            }, 80);
+        } else if ($.isArray(saved) && saved.length) {
+            $groups.find(".panel-collapse").removeClass("in");
+            $.each(saved, function (i, id) { $groups.find("#" + id.replace(/[^\\w-]/g, "")).addClass("in"); });
+        }
+        $groups.find(".panel-collapse").each(function () {
+            $(this).prev(".panel-heading").find("[data-toggle=collapse]").attr("aria-expanded", $(this).hasClass("in") ? "true" : "false");
+        });
+        $groups.on("shown.bs.collapse hidden.bs.collapse", store);
+
+        $pane.find("[data-tm-expand]").on("click", function () { $groups.find(".panel-collapse").collapse("show"); });
+        $pane.find("[data-tm-collapse]").on("click", function () { $groups.find(".panel-collapse").collapse("hide"); });
+
+        // Suche: passende Felder zeigen, Gruppen ohne Treffer ausblenden, Treffer-Gruppen aufklappen
+        $search.on("input", function () {
+            var q = $.trim($(this).val()).toLowerCase();
+            var hits = 0;
+            $groups.find("[data-tm-group]").each(function () {
+                var $group = $(this);
+                var groupName = $group.find(".panel-title").text().toLowerCase();
+                var groupMatch = q !== "" && groupName.indexOf(q) !== -1;
+                var groupHits = 0;
+                $group.find("[data-tm-field]").each(function () {
+                    var match = q === "" || groupMatch || String($(this).data("tm-field")).indexOf(q) !== -1;
+                    $(this).toggle(match).toggleClass("tm-field--hit", q !== "" && match && !groupMatch);
+                    if (match) { groupHits++; }
+                });
+                $group.toggle(q === "" || groupHits > 0);
+                if (q !== "" && groupHits > 0) {
+                    $group.find(".panel-collapse").addClass("in");
+                }
+                hits += q === "" ? 0 : groupHits;
+            });
+            $empty.prop("hidden", q === "" || hits > 0);
+            $count.text(q === "" ? "" : hits + " " + (hits === 1 ? "' . rex_escape($addon->i18n('template_manager_search_hit'), 'js') . '" : "' . rex_escape($addon->i18n('template_manager_search_hits'), 'js') . '"));
+        }).on("keydown", function (e) {
+            if (e.key === "Escape") { $(this).val("").trigger("input"); }
+        });
+    });
 });
 </script>
 ';
