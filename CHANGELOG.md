@@ -2,7 +2,7 @@
 
 Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentiert.
 
-## [Unreleased]
+## [1.7.0] - 2026-10-05
 
 ### Added
 - 🔎 **Übersicht in den Einstellungen** – Suchfeld über alle Einstellungen (Bezeichnung, Schlüssel, Beschreibung): passende Gruppen klappen auf, der Rest wird ausgeblendet; *Alle aufklappen / zuklappen*; Status je Gruppe („9 Felder · 2 leer“); mehrere Gruppen gleichzeitig offen; offene Gruppen bleiben nach dem Speichern offen (je Template/Domain/Sprache); Speichern-Leiste klebt unten

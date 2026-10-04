@@ -11,9 +11,13 @@ Ein REDAXO-Addon zur Verwaltung von domain- und sprachspezifischen Template-Eins
 - 🔧 **Native REDAXO Widgets** - Volle Integration von Linkmap, Medienpicker und Bootstrap Selectpicker
 - 🎨 **Visuelle Farbauswahl** - Colorselect mit farbigen Badges
 - 🏢 **Globale Variablen** - Mandantenübergreifende Einstellungen (SSO, Firmeninfos, API-Keys)
-- � **Notice-Felder** - Hinweise, Warnungen und Informationen direkt im Einstellungsformular
+- 💬 **Notice-Felder** - Hinweise, Warnungen und Informationen direkt im Einstellungsformular
 - 🔄 **Domain-Einstellungen kopieren** - Settings einer Domain auf andere Domains übertragen
-- �🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
+- 🚀 **Einfache Frontend-API** - Statische Klassen-Methoden mit optionalen Domain/Sprach-Parametern
+- 🔎 **Übersicht bei vielen Einstellungen** - Suche über alle Felder, Status je Gruppe („9 Felder · 2 leer“), Alle auf-/zuklappen, offene Gruppen bleiben nach dem Speichern offen, Speichern-Leiste klebt unten
+- 🔗 **Direktlinks** - Auf Gruppen und einzelne Felder verlinken (`#tm-group-…`, `#tm-field-…`), z. B. aus Modulen oder Dashboards
+- 🪟 **Bearbeiten im Fenster** - Einstellungen per Ajax im Overlay bearbeiten, ohne Seitenwechsel (Design wie MediaPlace)
+- 📍 **Koordinaten mit Kartenpicker** - Feldtyp `geo`, mit vector_maps inklusive Karte und Adresssuche
 - 🔌 **Erweiterbar** - Extension Point System für eigene Feldtypen durch externe Addons
 
 ## Erweiterbarkeit für externe Addons
@@ -245,6 +249,7 @@ Beides kombiniert:
 | `notice` | Hinweis-/Warnbox im Formular (kein Datenbankfeld) | `info` |
 | `social_links` | Social Media Links Repeater | JSON (Icon + URL + Label) |
 | `opening_hours` | Strukturierte Öffnungszeiten | JSON (Wochentage + Sonderzeiten) |
+| `geo` | Koordinaten, mit vector_maps per Kartenpicker | `52.520008,13.404954` |
 
 ### Koordinaten (Feldtyp `geo`)
 
@@ -1050,6 +1055,45 @@ echo TemplateManager::getSettingsLink('tm_hotel_phone', 'Telefon ändern', $doma
 echo TemplateManager::getSettingsLink('tm_checkin', 'Check-in', $domainId, null, ['reload' => true, 'icon' => '', 'title' => 'Anreise']);
 ```
 
+#### Beispiele aus der Praxis
+
+**Modul-Eingabe** – Daten kommen aus den Einstellungen, der Redakteur ändert sie ohne die Seite zu verlassen:
+
+```php
+// input.php eines Moduls „Kontakt & Anfahrt“
+use FriendsOfRedaxo\TemplateManager\TemplateManager;
+
+$domainId = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId())?->getId();
+$links = [];
+foreach (['tm_street' => 'Adresse', 'tm_phone' => 'Telefon', 'tm_geo' => 'Koordinaten', 'tm_hours' => 'Öffnungszeiten'] as $key => $label) {
+    $links[] = TemplateManager::getSettingsLink($key, $label, $domainId, null, ['icon' => '']);
+}
+echo '<p class="help-block">Adresse & Co. pflegen Sie in den Einstellungen des Hauses: ' . implode(' · ', $links) . '</p>';
+```
+
+**Dashboard / Aufgabenliste** – „Telefon fehlt“ öffnet direkt das Feld; nach dem Speichern lädt die Seite neu, damit die Aufgabe verschwindet:
+
+```php
+if ('' === (string) TemplateManager::get('tm_phone', '', $domainId)) {
+    echo TemplateManager::getSettingsLink('tm_phone', 'Telefonnummer ergänzen', $domainId, null, ['reload' => true, 'class' => 'btn btn-default']);
+}
+```
+
+**Eigenes Markup** – jedes Element mit `data-tm-settings` öffnet das Fenster:
+
+```html
+<a href="<?= rex_escape(TemplateManager::getSettingsUrl('tm_phone', 3)) ?>"
+   data-tm-settings="tm_phone" data-tm-domain="3" data-tm-template="1" data-tm-reload>Telefon ändern</a>
+```
+
+| Attribut | Bedeutung |
+|----------|-----------|
+| `data-tm-settings` | Feldschlüssel – das Fenster zeigt die Gruppe dieses Feldes, das Feld ist hervorgehoben und fokussiert |
+| `data-tm-domain` | YRewrite-Domain (sonst aktuelle Domain) |
+| `data-tm-template` | Template-ID (sonst das erste Template mit diesem Feld) |
+| `data-tm-title` | Titel im Fenster, solange es lädt |
+| `data-tm-reload` | Seite nach dem Speichern neu laden |
+
 Das Overlay lädt die Gruppe per Ajax (`rex-api-call=template_manager_settings`) und speichert nur deren Felder. Es gelten dieselben Rechte wie auf der Einstellungsseite (inkl. Gruppen-Rollen), der Speicheraufruf ist CSRF-geschützt. Feld-Widgets (Medienpool, Linkmap, Öffnungszeiten …) werden über `rex:ready` initialisiert. Ohne JavaScript – oder mit Strg/⌘-Klick – führt der Link zur Einstellungsseite.
 
 ### Mehrsprachigkeit
@@ -1220,7 +1264,36 @@ TemplateManager::getAll(
     ?int $domainId = null,    // Optional: Domain-ID (null = aktuelle)
     ?int $clangId = null      // Optional: Sprach-ID (null = aktuelle)
 ): array
+
+// Backend: Link zur Einstellungsseite (Gruppe offen, Feld hervorgehoben)
+TemplateManager::getSettingsUrl(
+    ?string $key = null,      // Feld (tm_…) – ohne: Einstellungsseite des Templates
+    ?int $domainId = null,    // null = aktuelle Domain
+    ?int $templateId = null   // null = erstes Template, das das Feld definiert
+): string
+
+// Backend: Link, der die Einstellung im Fenster öffnet (ohne JS: Einstellungsseite)
+TemplateManager::getSettingsLink(
+    string $key,
+    string $label,
+    ?int $domainId = null,
+    ?int $templateId = null,
+    array $options = []       // class, icon, title, reload
+): string
+
+TemplateManager::findTemplateId(?string $key = null): ?int
 ```
+
+### rex_api `template_manager_settings`
+
+Endpunkt des Einstellungs-Fensters (Backend, angemeldete Benutzer mit Template-Manager-Recht).
+
+| Methode | Parameter | Antwort |
+|---------|-----------|---------|
+| `GET` | `key`, `domain_id`, optional `template_id`, `clang` | JSON `{title, icon, subtitle, html, page_url}` – Formular der Gruppe des Feldes |
+| `POST` | wie GET + `_csrf_token`, Body `settings[<clang>][<key>]` | JSON `{success, message}` – speichert nur Felder dieser Gruppe |
+
+Gruppen mit Rollen (`--- Gruppe [rolle] ---`) sind nur für berechtigte Benutzer erreichbar. Die Adresse inklusive CSRF-Token steht im Backend unter `rex.template_manager.settings_api` bereit.
 
 ## Anforderungen
 
@@ -1234,6 +1307,18 @@ TemplateManager::getAll(
 MIT License
 
 ## Changelog
+
+Ausführlich in [CHANGELOG.md](CHANGELOG.md).
+
+### Version 1.7.0 (05.10.2026)
+- Übersicht bei vielen Einstellungen: Suche, Status je Gruppe, Alle auf-/zuklappen, offene Gruppen merken, klebende Speichern-Leiste
+- Direktlinks auf Gruppen und Felder, `TemplateManager::getSettingsUrl()`
+- Einstellungen im Fenster bearbeiten (Ajax, rex_api), `TemplateManager::getSettingsLink()`
+- Feldtyp `geo` mit Kartenpicker (vector_maps)
+- Gruppen-Icons im Akkordeon werden wieder angezeigt
+
+### Version 1.6.0 (03.10.2026)
+- Öffnungszeiten: nächste Öffnung auch an Folgetagen (`OpeningHoursHelper::getNextOpening()`)
 
 ### Version 1.5.0 (01.03.2026)
 - ✨ **Neuer Feldtyp `notice`**: Hinweis-, Info-, Warn- und Danger-Boxen direkt im Einstellungsformular (kein DB-Wert)
