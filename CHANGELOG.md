@@ -2,6 +2,24 @@
 
 Alle wichtigen Änderungen am Template Manager werden in dieser Datei dokumentiert.
 
+## [1.8.0] - 2026-10-30
+
+### Added
+- 📅 **Öffnungszeiten – Zeiträume** – Sonderzeiten können jetzt von–bis gelten (z. B. Betriebsferien vom 01.12. bis 20.12.), statt jeden Tag einzeln einzutragen
+  - Backend: Knopf *Zeitraum hinzufügen*, bei individuellen Einträgen Feld *bis (optional)*; ein Ende vor dem Start wird korrigiert
+  - Datenformat: optionales `date_end` (YYYY-MM-DD) – bestehende Einträge bleiben unverändert gültig
+  - Ein einzelner Tag hat Vorrang vor einem Zeitraum (z. B. ein geöffneter Tag mitten in den Betriebsferien)
+  - `getSpecial()` liefert `is_range`, `date_end`, `date_end_resolved`, `is_current`; `date_formatted` z. B. „01.12. – 20.12.“, über den Jahreswechsel mit Jahr; laufende Zeiträume bleiben bei `$futureOnly` sichtbar
+- `OpeningHoursHelper::getForDate()` – gültige Zeiten eines Tages inkl. Sonderzeit/Zeitraum (`is_special`, `special_name`)
+
+### Fixed
+- 🐞 **Öffnungszeiten-Feld nur im ersten Feld bedienbar** – das Skript lief direkt hinter dem ersten Feld, bevor weitere Felder (z. B. eine zweite Öffnungszeit oder andere Sprachen) existierten; dort ließen sich Tage wie Samstag/Sonntag nicht auf *Geöffnet* stellen und Änderungen wurden nicht gespeichert. Initialisierung jetzt nach dem Laden und bei `rex:ready`
+- Leeres Öffnungszeiten-Feld speichert beim bloßen Öffnen keine Standardzeiten mehr
+- `isOpenNow()` / `getCurrentStatus()`: Schließzeit („Schließt um …“) aus der Sonderzeit des Tages statt aus der regulären Zeit
+- Zeitfenster bis Mitternacht (z. B. 18:00–00:00) gelten als geöffnet
+- `getNextOpening()` schaut 62 statt 14 Tage voraus (längere Schließzeiten)
+- Vorschau maskiert Bezeichnungen (HTML)
+
 ## [1.7.0] - 2026-10-05
 
 ### Added

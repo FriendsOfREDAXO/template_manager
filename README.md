@@ -643,6 +643,7 @@ tm_opening_hours: opening_hours|Öffnungszeiten||Geschäftszeiten inkl. Feiertag
 - ✅ **Schnellaktionen**: "Mo → Werktage", "Alle geschlossen", "Zurücksetzen"
 - ✅ **Kopier-Funktion**: Zeiten auf andere Tage/Gruppen übertragen
 - ✅ **Sonderzeiten/Feiertage** mit 15 vordefinierten deutschen Feiertagen
+- ✅ **Zeiträume**: ein Eintrag „von – bis“ statt vieler Einzeltage, z. B. Betriebsferien vom 01.12. bis 20.12. (ein einzelner Tag hat Vorrang vor einem Zeitraum)
 - ✅ **Bewegliche Feiertage**: Ostern, Pfingsten, Christi Himmelfahrt etc.
 - ✅ **Live-Vorschau** mit Tabelle und "heute"-Markierung
 - ✅ **3 Tabs**: Reguläre Zeiten | Sonderzeiten | Vorschau
@@ -657,6 +658,8 @@ tm_opening_hours: opening_hours|Öffnungszeiten||Geschäftszeiten inkl. Feiertag
 
 **Frontend-Nutzung mit OpeningHoursHelper (empfohlen):**
 
+> **Zeiträume:** Sonderzeiten mit `date_end` gelten für alle Tage von `date` bis `date_end`. `isOpenNow()`, `getCurrentStatus()`, `getNextOpening()` und `getForDate()` berücksichtigen sie; `getSpecial()` liefert sie als einen Eintrag mit `is_range`, `date_end_resolved` und `date_formatted` wie „01.12. – 20.12.“ (über den Jahreswechsel mit Jahr). Laufende Zeiträume bleiben bei `$futureOnly` sichtbar und sind mit `is_current` markiert.
+>
 > **Nächste Öffnung:** `$helper->getNextOpening()` gibt z. B. `['date' => '2026-10-05', 'time' => '11:30', 'label' => 'Öffnet Montag um 11:30 Uhr', …]` zurück – auch über Wochenenden, Ruhetage und Feiertage hinweg. `getCurrentStatus()['next_change_label']` enthält diesen Text automatisch, wenn heute nicht mehr geöffnet wird.
 
 
@@ -749,7 +752,9 @@ if ($helper->hasData()):
 | `getRegular(bool $shortLabels = false)` | Reguläre Zeiten als Array (jeden Tag einzeln) |
 | `getRegularGrouped(bool $shortLabels = true)` | Aufeinanderfolgende Tage mit gleichen Zeiten zusammengefasst |
 | `getSpecial(?int $limit, bool $futureOnly)` | Sonderzeiten als Array |
-| `getToday()` | Heutigen Tag mit Status |
+| `getToday()` | Heutigen Tag mit Status (reguläre Zeit des Wochentags) |
+| `getForDate(?DateTimeInterface $day)` | Gültige Zeiten eines Tages – Sonderzeit oder Zeitraum hat Vorrang (`is_special`, `special_name`) |
+| `getNextOpening(?DateTimeInterface $from, int $maxDays = 62)` | Nächste Öffnung mit fertigem Text |
 | `isOpenNow()` | Prüft ob aktuell geöffnet |
 | `getCurrentStatus()` | Status-Array für "Jetzt geöffnet"-Anzeige |
 | `getNote()` | Freitext/Notiz abrufen (z.B. "Termine nach Vereinbarung") |
@@ -850,6 +855,9 @@ $helper->setTranslations('fr', [
         'status' => 'open',
         'status_label' => 'Geöffnet',
         'is_holiday' => true,                 // Vordefinierter Feiertag
+        'is_range' => false,                  // Zeitraum (date bis date_end)?
+        'date_end_resolved' => '2026-12-24',  // Ende (bei Einzeltagen = date_resolved)
+        'is_current' => false,                // gilt heute
         'is_open' => true,
         'is_closed' => false,
         'times' => [...],
@@ -893,6 +901,14 @@ $helper->setTranslations('fr', [
         },
         { 
             "date": "2026-01-02", 
+            "name": "Brückentag", 
+            "status": "closed", 
+            "times": [],
+            "holiday": false
+        },
+        { 
+            "date": "2026-12-01", 
+            "date_end": "2026-12-20", 
             "name": "Betriebsferien", 
             "status": "closed", 
             "times": [],
@@ -1309,6 +1325,11 @@ MIT License
 ## Changelog
 
 Ausführlich in [CHANGELOG.md](CHANGELOG.md).
+
+### Version 1.8.0 (30.10.2026)
+- Öffnungszeiten: Sonderzeiten auch als Zeitraum (von – bis), z. B. Betriebsferien
+- Öffnungszeiten-Feld funktioniert jetzt in jedem Feld der Seite (bisher nur im ersten – weitere Felder und andere Sprachen ließen sich nicht bearbeiten)
+- `OpeningHoursHelper::getForDate()`; Status und Schließzeit berücksichtigen Sonderzeiten des Tages; Zeitfenster bis Mitternacht
 
 ### Version 1.7.0 (05.10.2026)
 - Übersicht bei vielen Einstellungen: Suche, Status je Gruppe, Alle auf-/zuklappen, offene Gruppen merken, klebende Speichern-Leiste

@@ -11,7 +11,7 @@ use FriendsOfRedaxo\TemplateManager\AbstractFieldRenderer;
  * - Reguläre Öffnungszeiten pro Wochentag
  * - Mehrere Zeitfenster pro Tag (z.B. für Mittagspausen)
  * - 24h geöffnet / Geschlossen Optionen
- * - Sonderöffnungszeiten für Feiertage
+ * - Sonderöffnungszeiten für Feiertage, einzelne Tage und Zeiträume (z. B. Betriebsferien)
  * - Zeiten kopieren (auf andere Tage übertragen)
  * - Live-Vorschau
  * 
@@ -62,6 +62,9 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         return $type === 'opening_hours';
     }
     
+    /**
+     * @param array<string, mixed> $setting
+     */
     public function render(array $setting, string $value, string $name, int $clangId): string
     {
         self::$instanceCounter++;
@@ -81,7 +84,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $html .= '<div class="opening-hours-container" id="' . $instanceId . '" data-name="' . \rex_escape($name) . '">';
         
         // Hidden Input für JSON-Wert
-        $html .= '<input type="hidden" name="' . $name . '" class="opening-hours-value" value="' . \rex_escape($value) . '">';
+        $html .= '<input type="hidden" name="' . \rex_escape($name) . '" class="opening-hours-value" value="' . \rex_escape($value) . '">';
         
         // Tabs für Regular / Special
         $html .= '<ul class="nav nav-tabs" role="tablist">';
@@ -130,6 +133,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Wert parsen oder Standardstruktur zurückgeben
+     * @return array<string, mixed>
      */
     private function parseValue(string $value): array
     {
@@ -160,6 +164,8 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     /**
      * Repariert Feiertage, die fälschlicherweise holiday: false haben
      * Erkennt Easter-Format (easter+X, easter-X), MM-DD Format und Namen bekannter Feiertage
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      */
     private function repairHolidayFlags(array $data): array
     {
@@ -212,6 +218,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Reguläre Öffnungszeiten rendern
+     * @param array<string, array<string, mixed>> $regular
      */
     private function renderRegularHours(array $regular): string
     {
@@ -239,6 +246,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Einzelnen Wochentag rendern
+     * @param array<string, mixed> $dayData
      */
     private function renderDayRow(string $day, string $label, array $dayData): string
     {
@@ -305,6 +313,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Einzelnes Zeitfenster rendern
+     * @param array<string, string> $time
      */
     private function renderTimeSlot(int $index, array $time, bool $showRemove = false): string
     {
@@ -329,6 +338,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Sonderöffnungszeiten rendern
+     * @param array<int, array<string, mixed>> $special
      */
     private function renderSpecialHours(array $special): string
     {
@@ -337,7 +347,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         // Info
         $html .= '<div class="alert alert-info" style="margin-bottom: 15px;">';
         $html .= '<i class="rex-icon fa-info-circle"></i> ';
-        $html .= 'Hier können Sie abweichende Öffnungszeiten für Feiertage oder besondere Tage festlegen. Diese überschreiben die regulären Zeiten.';
+        $html .= 'Hier können Sie abweichende Öffnungszeiten für Feiertage, einzelne Tage oder ganze Zeiträume (z. B. Betriebsferien) festlegen. Diese überschreiben die regulären Zeiten. Ein einzelner Tag hat Vorrang vor einem Zeitraum.';
         $html .= '</div>';
         
         // Schnell-Hinzufügen für Feiertage
@@ -361,7 +371,8 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         
         // Manuell hinzufügen
         $html .= '<div style="margin-bottom: 15px;">';
-        $html .= '<button type="button" class="btn btn-sm btn-success oh-add-special"><i class="rex-icon fa-plus"></i> Individuelles Datum hinzufügen</button>';
+        $html .= '<button type="button" class="btn btn-sm btn-success oh-add-special"><i class="rex-icon fa-plus"></i> Einzelnen Tag hinzufügen</button> ';
+        $html .= '<button type="button" class="btn btn-sm btn-success oh-add-special-range"><i class="rex-icon fa-calendar-plus-o"></i> Zeitraum hinzufügen</button>';
         $html .= '</div>';
         
         // Liste der Sonderzeiten
@@ -382,6 +393,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
     
     /**
      * Einzelnen Sonderzeiten-Eintrag rendern
+     * @param array<string, mixed> $entry
      */
     private function renderSpecialEntry(int $index, array $entry): string
     {
@@ -390,6 +402,7 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
         $status = $entry['status'] ?? 'closed';
         $times = $entry['times'] ?? [];
         $isHoliday = $entry['holiday'] ?? false;
+        $dateEnd = $isHoliday ? '' : (string) ($entry['date_end'] ?? '');
         
         $html = '<div class="oh-special-entry panel panel-default" data-index="' . $index . '"' . ($isHoliday ? ' data-holiday="true"' : '') . '>';
         $html .= '<div class="panel-body" style="display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;">';
@@ -400,9 +413,18 @@ class OpeningHoursFieldRenderer extends AbstractFieldRenderer
             $html .= '<input type="text" class="form-control input-sm oh-special-date oh-readonly-input" value="' . \rex_escape($date) . '" readonly>';
             $html .= '<small class="text-muted">Beweglich</small>';
         } else {
-            $html .= '<input type="date" class="form-control input-sm oh-special-date" value="' . \rex_escape($date) . '">';
+            $html .= '<input type="date" class="form-control input-sm oh-special-date" value="' . \rex_escape($date) . '" aria-label="Datum (von)">';
+            $html .= '<small class="text-muted">' . ('' !== $dateEnd ? 'von' : 'Datum') . '</small>';
         }
         $html .= '</div>';
+        
+        // Ende des Zeitraums (optional, nur bei festen Daten)
+        if (!$isHoliday) {
+            $html .= '<div class="oh-special-end-wrap" style="flex: 0 0 140px;">';
+            $html .= '<input type="date" class="form-control input-sm oh-special-date-end" value="' . \rex_escape($dateEnd) . '" min="' . \rex_escape($date) . '" aria-label="bis (optional)">';
+            $html .= '<small class="text-muted">bis (optional)</small>';
+            $html .= '</div>';
+        }
         
         // Name/Bezeichnung
         $html .= '<div style="flex: 0 0 180px;">';
@@ -632,8 +654,22 @@ body.rex-theme-dark .opening-hours-container {
     const WEEKDAYS = ' . $weekdaysJson . ';
     const WEEKDAY_KEYS = Object.keys(WEEKDAYS);
     
-    // Container initialisieren
-    document.querySelectorAll(".opening-hours-container").forEach(initContainer);
+    // Container initialisieren – erst wenn alle Felder im DOM sind (das Skript steht hinter dem ersten Feld),
+    // jedes Feld nur einmal; auch für nachgeladene Inhalte (rex:ready, z. B. Einstellungen im Fenster)
+    function initAll(root) {
+        (root || document).querySelectorAll(".opening-hours-container:not([data-oh-ready])").forEach(function (container) {
+            container.dataset.ohReady = "1";
+            initContainer(container);
+        });
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () { initAll(); });
+    } else {
+        initAll();
+    }
+    if (window.jQuery) {
+        window.jQuery(document).on("rex:ready", function (e, container) { initAll(container && container[0] ? container[0] : document); });
+    }
     
     function initContainer(container) {
         const valueInput = container.querySelector(".opening-hours-value");
@@ -662,6 +698,22 @@ body.rex-theme-dark .opening-hours-container {
                 updateValue();
             }
             
+            // Datum geändert: Ende darf nicht vor dem Start liegen
+            if (target.classList.contains("oh-special-date") || target.classList.contains("oh-special-date-end")) {
+                const entry = target.closest(".oh-special-entry");
+                const startInput = entry.querySelector(".oh-special-date");
+                const endInput = entry.querySelector(".oh-special-date-end");
+                if (endInput) {
+                    endInput.min = startInput.value;
+                    if (endInput.value && startInput.value && endInput.value < startInput.value) {
+                        endInput.value = startInput.value;
+                    }
+                    const label = startInput.parentNode.querySelector("small");
+                    if (label) label.textContent = (endInput.value && endInput.value !== startInput.value) ? "von" : "Datum";
+                }
+                updateValue();
+            }
+
             // Status-Änderung bei Sonderzeit
             if (target.classList.contains("oh-special-status")) {
                 const entry = target.closest(".oh-special-entry");
@@ -796,7 +848,30 @@ body.rex-theme-dark .opening-hours-container {
                 list.appendChild(entry);
                 updateValue();
             }
-            
+
+            // Zeitraum hinzufügen (z. B. Betriebsferien)
+            if (target.classList.contains("oh-add-special-range")) {
+                e.preventDefault();
+                const list = container.querySelector(".oh-special-list");
+                const start = new Date();
+                const end = new Date(start.getTime() + 6 * 86400000);
+                const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+                const entry = createSpecialEntry(list.children.length, {
+                    date: iso(start),
+                    date_end: iso(end),
+                    range: true,
+                    name: "",
+                    status: "closed",
+                    times: [{ open: "09:00", close: "14:00" }],
+                    holiday: false
+                });
+
+                list.appendChild(entry);
+                entry.querySelector(".oh-special-date").focus();
+                updateValue();
+            }
+
             // Sonderzeit entfernen
             if (target.classList.contains("oh-remove-special")) {
                 e.preventDefault();
@@ -889,13 +964,15 @@ body.rex-theme-dark .opening-hours-container {
                     \'</div>\';
             });
             
-            const dateInput = data.holiday 
-                ? \'<input type="text" class="form-control input-sm oh-special-date" value="\' + data.date + \'" readonly style="background: #f5f5f5;"><small class="text-muted">Beweglich</small>\'
-                : \'<input type="date" class="form-control input-sm oh-special-date" value="\' + data.date + \'">\';
-            
+            const dateInput = data.holiday
+                ? \'<input type="text" class="form-control input-sm oh-special-date oh-readonly-input" value="\' + data.date + \'" readonly><small class="text-muted">Beweglich</small>\'
+                : \'<input type="date" class="form-control input-sm oh-special-date" value="\' + data.date + \'" aria-label="Datum (von)"><small class="text-muted">\' + (data.range ? "von" : "Datum") + \'</small>\';
+            const endInput = data.holiday ? "" :
+                \'<div class="oh-special-end-wrap" style="flex: 0 0 140px;"><input type="date" class="form-control input-sm oh-special-date-end" value="\' + (data.date_end || "") + \'" min="\' + data.date + \'" aria-label="bis (optional)"><small class="text-muted">bis (optional)</small></div>\';
+
             div.innerHTML = \'<div class="panel-body" style="display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;">\' +
-                \'<div style="flex: 0 0 140px;">\' + dateInput + \'</div>\' +
-                \'<div style="flex: 0 0 180px;"><input type="text" class="form-control input-sm oh-special-name" value="\' + (data.name || "") + \'" placeholder="Bezeichnung"></div>\' +
+                \'<div style="flex: 0 0 140px;">\' + dateInput + \'</div>\' + endInput +
+                \'<div style="flex: 0 0 180px;"><input type="text" class="form-control input-sm oh-special-name" value="\' + escapeAttr(data.name || "") + \'" placeholder="\' + (data.range ? "z. B. Betriebsferien" : "Bezeichnung") + \'"></div>\' +
                 \'<div style="flex: 0 0 130px;"><select class="form-control input-sm oh-special-status">\' +
                     \'<option value="open"\' + (data.status === "open" ? " selected" : "") + \'>Geöffnet</option>\' +
                     \'<option value="closed"\' + (data.status === "closed" ? " selected" : "") + \'>Geschlossen</option>\' +
@@ -953,13 +1030,19 @@ body.rex-theme-dark .opening-hours-container {
                     });
                 }
                 
-                data.special.push({
+                const item = {
                     date: entry.querySelector(".oh-special-date").value,
                     name: entry.querySelector(".oh-special-name").value,
                     status: status,
                     times: times,
                     holiday: entry.dataset.holiday === "true"
-                });
+                };
+                // Zeitraum: nur speichern, wenn das Ende nach dem Start liegt
+                const endInput = entry.querySelector(".oh-special-date-end");
+                if (endInput && endInput.value && endInput.value > item.date) {
+                    item.date_end = endInput.value;
+                }
+                data.special.push(item);
             });
             
             // Hinweis-Text sammeln
@@ -1021,11 +1104,14 @@ body.rex-theme-dark .opening-hours-container {
                 
                 specials.forEach(entry => {
                     const date = entry.querySelector(".oh-special-date").value;
-                    const name = entry.querySelector(".oh-special-name").value;
+                    const endInput = entry.querySelector(".oh-special-date-end");
+                    const dateEnd = endInput && endInput.value > date ? endInput.value : "";
+                    const name = escapeHtml(entry.querySelector(".oh-special-name").value);
                     const status = entry.querySelector(".oh-special-status").value;
-                    
+                    const when = dateEnd ? formatDate(date) + " – " + formatDate(dateEnd) : formatDate(date);
+
                     html += \'<tr>\';
-                    html += \'<td>\' + (name || date) + (name && date.indexOf("-") === 2 ? "" : (name ? " <small>(" + formatDate(date) + ")</small>" : "")) + \'</td>\';
+                    html += \'<td>\' + (name ? name + " <small>(" + when + ")</small>" : when) + \'</td>\';
                     
                     if (status === "closed") {
                         html += \'<td class="oh-closed">Geschlossen</td>\';
@@ -1063,6 +1149,14 @@ body.rex-theme-dark .opening-hours-container {
             return dateStr;
         }
         
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"\']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\\"": "&quot;", "\\\'": "&#39;" }[c]));
+        }
+
+        function escapeAttr(str) {
+            return escapeHtml(str);
+        }
+
         function debounce(fn, delay) {
             let timer;
             return function(...args) {
@@ -1071,8 +1165,13 @@ body.rex-theme-dark .opening-hours-container {
             };
         }
         
-        // Initial preview
-        updateValue();
+        // Initiale Vorschau; ein leeres Feld bleibt leer, bis etwas geändert wird
+        // (sonst würden beim Speichern ungefragt die Standardzeiten übernommen)
+        if (valueInput.value) {
+            updateValue();
+        } else {
+            updatePreview();
+        }
     }
 })();
 </script>';

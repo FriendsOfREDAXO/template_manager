@@ -27,11 +27,16 @@ namespace FriendsOfRedaxo\TemplateManager;
  */
 class OpeningHoursHelper
 {
+    /**
+     * @var array<string, mixed>
+     */
     private array $data = [];
     private string $locale = 'de';
     
     /**
      * Übersetzbare Texte (können überschrieben werden)
+     * 
+     * @var array<string, array<string, array<string, string>>>
      */
     private array $translations = [
         'de' => [
@@ -141,7 +146,7 @@ class OpeningHoursHelper
      * Eigene Übersetzungen setzen
      * 
      * @param string $locale Sprach-Key
-     * @param array $translations Übersetzungs-Array (siehe $this->translations für Struktur)
+     * @param array<string, mixed> $translations Übersetzungs-Array (siehe $this->translations für Struktur)
      * @return self
      */
     public function setTranslations(string $locale, array $translations): self
@@ -224,7 +229,7 @@ class OpeningHoursHelper
      * Reguläre Öffnungszeiten als Array
      * 
      * @param bool $shortLabels Kurze Wochentag-Namen verwenden
-     * @return array Array mit Wochentagen und deren Daten
+     * @return array<string, array<string, mixed>> Array mit Wochentagen und deren Daten
      */
     public function getRegular(bool $shortLabels = false): array
     {
@@ -268,7 +273,7 @@ class OpeningHoursHelper
      * Aufeinanderfolgende Tage mit identischen Zeiten werden zusammengefasst.
      * Beispiel: "Mo - Fr: 09:00 - 18:00" statt einzelner Tage.
      * 
-     * @return array Array mit gruppierten Einträgen
+     * @return list<array<string, mixed>>
      */
     public function getRegularGrouped(): array
     {
@@ -308,9 +313,7 @@ class OpeningHoursHelper
         }
         
         // Letzte Gruppe abschließen
-        if ($currentGroup !== null) {
-            $groups[] = $this->finalizeGroup($currentGroup);
-        }
+        $groups[] = $this->finalizeGroup($currentGroup);
         
         return $groups;
     }
@@ -318,8 +321,8 @@ class OpeningHoursHelper
     /**
      * Gruppe finalisieren und Label erstellen
      * 
-     * @param array $group Gruppen-Daten
-     * @return array Finalisierte Gruppe
+     * @param array<string, mixed> $group Gruppen-Daten
+     * @return array<string, mixed> Finalisierte Gruppe
      */
     private function finalizeGroup(array $group): array
     {
@@ -364,7 +367,7 @@ class OpeningHoursHelper
      * 
      * @param int|null $limit Maximale Anzahl (null = alle)
      * @param bool $futureOnly Nur zukünftige Termine
-     * @return array
+     * @return list<array<string, mixed>>
      */
     public function getSpecial(?int $limit = null, bool $futureOnly = false): array
     {
@@ -374,26 +377,38 @@ class OpeningHoursHelper
         
         $result = [];
         $today = date('Y-m-d');
-        
+
         foreach ($this->data['special'] as $entry) {
             $date = $entry['date'] ?? '';
             $status = $entry['status'] ?? 'closed';
             $times = $entry['times'] ?? [];
-            
+
             // Für bewegliche Feiertage (easter+X) Datum berechnen
             $actualDate = $this->resolveDate($date);
-            
-            // Filter: nur zukünftige
-            if ($futureOnly && $actualDate && $actualDate < $today) {
+            // Zeitraum (date bis date_end), sonst einzelner Tag
+            $endDate = $this->resolveEndDate($entry, $actualDate);
+            $isRange = null !== $endDate && $endDate !== $actualDate;
+
+            // Filter: nur zukünftige (laufende Zeiträume bleiben sichtbar)
+            if ($futureOnly && $actualDate && ($endDate ?? $actualDate) < $today) {
                 continue;
             }
-            
+
+            $dateFormatted = $actualDate ? $this->formatDate($actualDate) : $date;
+            if ($isRange) {
+                $dateFormatted = $this->formatDateRange((string) $actualDate, $endDate);
+            }
+
             $result[] = [
                 'date' => $date,
                 'date_resolved' => $actualDate,
-                'date_formatted' => $actualDate ? $this->formatDate($actualDate) : $date,
+                'date_end' => $isRange ? (string) ($entry['date_end'] ?? '') : '',
+                'date_end_resolved' => $isRange ? $endDate : $actualDate,
+                'is_range' => $isRange,
+                'is_current' => null !== $actualDate && $actualDate <= $today && ($endDate ?? $actualDate) >= $today,
+                'date_formatted' => $dateFormatted,
                 'name' => $entry['name'] ?? '',
-                'display_name' => !empty($entry['name']) ? $entry['name'] : $this->formatDate($actualDate ?: $date),
+                'display_name' => !empty($entry['name']) ? $entry['name'] : $dateFormatted,
                 'status' => $status,
                 'status_label' => $this->getStatusLabel($status),
                 'is_holiday' => $entry['holiday'] ?? false,
@@ -420,8 +435,7 @@ class OpeningHoursHelper
     
     /**
      * Heutigen Tag mit Status
-     * 
-     * @return array|null
+     * @return array<string, mixed>|null
      */
     public function getToday(): ?array
     {
@@ -446,63 +460,75 @@ class OpeningHoursHelper
         if (!$this->hasData()) {
             return false;
         }
-        
-        $todayDate = date('Y-m-d');
-        $currentTime = date('H:i');
-        
-        // Erst Sonderzeiten prüfen (haben Vorrang)
-        foreach ($this->data['special'] ?? [] as $special) {
-            $resolvedDate = $this->resolveDate($special['date'] ?? '');
-            
-            if ($resolvedDate === $todayDate) {
-                if (($special['status'] ?? 'closed') === 'closed') {
-                    return false;
-                }
-                return $this->isTimeInSlots($currentTime, $special['times'] ?? []);
-            }
-        }
-        
-        // Dann reguläre Zeiten
-        $todayKey = $this->getTodayKey();
-        $todayData = $this->data['regular'][$todayKey] ?? ['status' => 'closed'];
-        $status = $todayData['status'] ?? 'closed';
-        
+
+        // Sonderzeiten (einzelne Tage und Zeiträume) haben Vorrang vor den regulären Zeiten
+        [$status, $times] = $this->getDayRule(new \DateTimeImmutable());
+
         if ($status === 'closed') {
             return false;
         }
-        
+
         if ($status === '24h') {
             return true;
         }
-        
-        return $this->isTimeInSlots($currentTime, $todayData['times'] ?? []);
+
+        return $this->isTimeInSlots(date('H:i'), $times);
     }
-    
+
+    /**
+     * Öffnungszeiten eines bestimmten Tages – Sonderzeit (einzelner Tag oder Zeitraum) hat Vorrang.
+     *
+     * @param \DateTimeInterface|null $day Tag (Standard: heute)
+     * @return array{date: string, key: string, label: string, status: string, status_label: string, is_open: bool, is_closed: bool, is_24h: bool, is_special: bool, special_name: string, times: array<int, array<string, string>>, times_formatted: string, formatted: string}
+     */
+    public function getForDate(?\DateTimeInterface $day = null): array
+    {
+        $day ??= new \DateTimeImmutable();
+        [$status, $times, $special] = $this->getDayRule($day) + [2 => null];
+        $key = strtolower($day->format('l'));
+
+        return [
+            'date' => $day->format('Y-m-d'),
+            'key' => $key,
+            'label' => $this->translate('weekdays.' . $key),
+            'status' => $status,
+            'status_label' => $this->getStatusLabel($status),
+            'is_open' => $status === 'open' || $status === '24h',
+            'is_closed' => $status === 'closed',
+            'is_24h' => $status === '24h',
+            'is_special' => null !== $special,
+            'special_name' => (string) ($special['name'] ?? ''),
+            'times' => 'open' === $status ? $times : [],
+            'times_formatted' => 'open' === $status ? $this->formatTimeSlots($times) : '',
+            'formatted' => $this->formatDayStatus($status, $times),
+        ];
+    }
+
     /**
      * Aktuellen Status als Array (für Anzeige "Jetzt geöffnet/geschlossen")
-     * 
-     * @return array
+     * @return array<string, mixed>
      */
     public function getCurrentStatus(): array
     {
         $isOpen = $this->isOpenNow();
-        $today = $this->getToday();
+        $today = $this->getForDate();
         $currentTime = date('H:i');
-        
+
         $result = [
             'is_open' => $isOpen,
-            'label' => $isOpen 
-                ? $this->translate('labels.we_are_open') 
+            'label' => $isOpen
+                ? $this->translate('labels.we_are_open')
                 : $this->translate('labels.we_are_closed'),
-            'today' => $today,
+            'today' => $this->getToday(),
+            'today_effective' => $today,
             'next_change' => null,
             'next_change_label' => null,
         ];
-        
-        // Nächste Statusänderung berechnen
-        if ($today && $today['status'] === 'open') {
+
+        // Nächste Statusänderung berechnen (mit den heute gültigen Zeiten, auch bei Sonderzeiten)
+        if ($today['status'] === 'open') {
             foreach ($today['times'] as $slot) {
-                if ($isOpen && $currentTime >= $slot['open'] && $currentTime < $slot['close']) {
+                if ($isOpen && $currentTime >= $slot['open'] && $currentTime < $this->closeTime($slot)) {
                     $result['next_change'] = $slot['close'];
                     $result['next_change_label'] = $this->translate('labels.closes_at') . ' ' . $slot['close'];
                     if ($this->translate('labels.time_suffix')) {
@@ -540,7 +566,7 @@ class OpeningHoursHelper
      * @param int $maxDays wie viele Tage vorausgeschaut wird
      * @return array{date: string, time: string, weekday: string, is_today: bool, is_tomorrow: bool, label: string}|null
      */
-    public function getNextOpening(?\DateTimeInterface $from = null, int $maxDays = 14): ?array
+    public function getNextOpening(?\DateTimeInterface $from = null, int $maxDays = 62): ?array
     {
         if (!$this->hasData()) {
             return null;
@@ -583,26 +609,82 @@ class OpeningHoursHelper
 
     /**
      * Regel eines Tages: Sonderzeit (Vorrang) oder reguläre Zeit des Wochentags.
+     * Einzelne Tage gehen Zeiträumen vor (z. B. ein geöffneter Tag mitten in den Betriebsferien).
      *
-     * @return array{0: string, 1: array<int, array{open?: string, close?: string}>} [status, times]
+     * @return array{0: string, 1: array<int, array<string, string>>, 2?: array<string, mixed>} [status, times, Sonderzeit]
      */
     private function getDayRule(\DateTimeInterface $day): array
     {
         $date = $day->format('Y-m-d');
         $year = (int) $day->format('Y');
+        $range = null;
         foreach ($this->data['special'] ?? [] as $special) {
-            if ($this->resolveDate((string) ($special['date'] ?? ''), $year) === $date) {
-                return [(string) ($special['status'] ?? 'closed'), (array) ($special['times'] ?? [])];
+            $start = $this->resolveDate((string) ($special['date'] ?? ''), $year);
+            $end = $this->resolveEndDate($special, $start);
+            if (null !== $end && $end !== $start) {
+                if (null === $range && $start <= $date && $date <= $end) {
+                    $range = $special;
+                }
+                continue;
             }
+            if ($start === $date) {
+                return [(string) ($special['status'] ?? 'closed'), (array) ($special['times'] ?? []), $special];
+            }
+        }
+        if (null !== $range) {
+            return [(string) ($range['status'] ?? 'closed'), (array) ($range['times'] ?? []), $range];
         }
         $regular = $this->data['regular'][strtolower($day->format('l'))] ?? ['status' => 'closed'];
         return [(string) ($regular['status'] ?? 'closed'), (array) ($regular['times'] ?? [])];
     }
+
+    /**
+     * Schließzeit eines Zeitfensters; „bis Mitternacht“ (00:00 oder früher als die Öffnung) zählt als 24:00.
+     *
+     * @param array<string, string> $slot
+     */
+    private function closeTime(array $slot): string
+    {
+        $open = $slot['open'] ?? '';
+        $close = $slot['close'] ?? '';
+        if ('' === $close) {
+            return '';
+        }
+        return $close <= $open ? '24:00' : $close;
+    }
+    
+    /**
+     * Enddatum eines Zeitraums (nur bei festem Startdatum YYYY-MM-DD und gültigem Ende ab Start).
+     * @param array<string, mixed> $entry
+     */
+    private function resolveEndDate(array $entry, ?string $start): ?string
+    {
+        $end = (string) ($entry['date_end'] ?? '');
+        if (null === $start || '' === $end || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($entry['date'] ?? ''))) {
+            return null;
+        }
+        return $end >= $start ? $end : null;
+    }
+
+    /**
+     * Zeitraum formatieren: „01.12. – 20.12.“, über den Jahreswechsel mit Jahr („28.12.2026 – 06.01.2027“)
+     */
+    private function formatDateRange(string $start, string $end): string
+    {
+        if (substr($start, 0, 4) !== substr($end, 0, 4)) {
+            return $this->formatDateLong($start) . ' – ' . $this->formatDateLong($end);
+        }
+        return $this->formatDate($start) . ' – ' . $this->formatDate($end);
+    }
+
+    private function formatDateLong(string $date): string
+    {
+        return preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $m) ? $m[3] . '.' . $m[2] . '.' . $m[1] : $date;
+    }
     
     /**
      * Rohdaten abrufen
-     * 
-     * @return array
+     * @return array<string, mixed>
      */
     public function getRawData(): array
     {
@@ -635,8 +717,8 @@ class OpeningHoursHelper
     /**
      * Zeitslots formatieren
      * 
-     * @param array $times Array von ['open' => 'HH:MM', 'close' => 'HH:MM']
      * @return string Formatierte Zeiten (z.B. "09:00–12:00, 14:00–18:00 Uhr")
+     * @param array<int, array<string, string>> $times
      */
     private function formatTimeSlots(array $times): string
     {
@@ -657,6 +739,7 @@ class OpeningHoursHelper
     
     /**
      * Tagesstatus formatieren
+     * @param array<int, array<string, string>> $times
      */
     private function formatDayStatus(string $status, array $times): string
     {
@@ -737,11 +820,8 @@ class OpeningHoursHelper
             }
             
             // Letzter Fallback: Manuelle Berechnung (Anonymous Gregorian algorithm)
-            $easterDate = $this->calculateEaster($year);
-            if ($easterDate) {
-                $timestamp = strtotime($easterDate . ' +' . $offset . ' days');
-                return date('Y-m-d', $timestamp);
-            }
+            $timestamp = strtotime($this->calculateEaster($year) . ' +' . $offset . ' days');
+            return date('Y-m-d', (int) $timestamp);
         }
         
         return null;
@@ -751,7 +831,7 @@ class OpeningHoursHelper
      * Manuelle Osterberechnung (Gregorianischer Kalender)
      * Fallback wenn keine PHP calendar extension verfügbar ist
      */
-    private function calculateEaster(int $year): ?string
+    private function calculateEaster(int $year): string
     {
         // Anonymous Gregorian algorithm
         $a = $year % 19;
@@ -774,14 +854,15 @@ class OpeningHoursHelper
     
     /**
      * Prüft ob aktuelle Zeit in einem der Zeitslots liegt
+     * @param array<int, array<string, string>> $slots
      */
     private function isTimeInSlots(string $currentTime, array $slots): bool
     {
         foreach ($slots as $slot) {
             $open = $slot['open'] ?? '';
-            $close = $slot['close'] ?? '';
+            $close = $this->closeTime($slot);
             
-            if ($currentTime >= $open && $currentTime < $close) {
+            if ('' !== $open && $currentTime >= $open && $currentTime < $close) {
                 return true;
             }
         }
